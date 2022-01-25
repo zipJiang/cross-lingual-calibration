@@ -1,0 +1,1 @@
+__VIRTUAL_ROOT__ = '__VIRTUAL_ROOT__'
