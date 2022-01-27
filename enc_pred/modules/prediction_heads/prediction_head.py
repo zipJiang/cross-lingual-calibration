@@ -15,6 +15,8 @@ class PredictionHead(torch.nn.Module, Registrable, abc.ABC):
         """vocabulary is used to infer num_labels in the space.
         """
         super().__init__()
+        self.vocabulary = vocabulary
+        self.input_dim = input_dim
 
     def forward(
         self,

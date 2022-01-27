@@ -11,7 +11,6 @@ from overrides import overrides
 
 
 @PredictionHead.register('linear-classification-head')
-@PredictionHead.register('lazy-linear-classification-head', constructor='lazy_construct')
 class LinearClassificationHead(PredictionHead):
     def __init__(self,
         vocabulary: Vocabulary,
@@ -21,34 +20,18 @@ class LinearClassificationHead(PredictionHead):
     ):
         """
         """
-        super(
+        super().__init__(
             vocabulary=vocabulary,
             input_dim=input_dim
-        ).__init__()
+        )
 
         self.with_bias = with_bias
         self.label_namespace = label_namespace
 
         self.linear = torch.nn.Linear(
             in_features=input_dim,
-            out_features=vocabulary.get_vocab_size(namespace=self.label_namespace),
+            out_features=self.vocabulary.get_vocab_size(namespace=self.label_namespace),
             bias=self.with_bias)
-
-    @classmethod
-    def lazy_construct(cls,
-        vocabulary: Vocabulary,
-        encoder: Seq2SeqEncoder,
-        label_namespace: Text = 'labels',
-        with_bias: Optional[bool] = False,
-        **extras
-    ) -> "PredictionHead":
-        """
-        """
-        return cls(
-            vocabulary=vocabulary,
-            input_dim=encoder.get_output_dim(),
-            with_bias=with_bias
-        )
 
     @overrides
     def forward(
@@ -59,7 +42,7 @@ class LinearClassificationHead(PredictionHead):
     ) -> Dict[Text, torch.Tensor]:
         """
         """
-        batch_size, num_spans = span_repr.size()
+        batch_size, num_spans, _ = span_repr.size()
         span_repr = span_repr.flatten(0, 1)
 
         # linear transform

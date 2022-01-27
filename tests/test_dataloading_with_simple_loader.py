@@ -21,7 +21,8 @@ class TestDataloadingWithSimpleLoader(TestCase):
         )
         self.udparse_reader = UniversalDependencyReader(
             max_length=self.max_length,
-            pretrained_model=self.pretrained_model
+            pretrained_model=self.pretrained_model,
+            task='pos_tag'
         )
 
     def test_udparse_loading(self):

@@ -108,13 +108,15 @@ class UniversalDependencyReader(SpanReader):
     def __init__(
         self,
         max_length: int,
-        pretrained_model: Text
+        pretrained_model: Text,
+        task: Text,
     ):
         """
         """
         super().__init__()
         self.model_name = pretrained_model
         self.max_length = max_length
+        self.task = task
 
         self.tokenizer = PretrainedTransformerTokenizer(
             model_name=self.model_name,
@@ -142,31 +144,36 @@ class UniversalDependencyReader(SpanReader):
         return True
 
     @overrides
-    def _read(self, file_path: Text) -> Iterable[Instance]:
+    def _read(self, file_path: Union[Text, List[Text]]) -> Iterable[Instance]:
         """
         """
-        with open(file_path, 'r', encoding='utf-8') as file_:
-            for sentence in parse_incr(file_):
-                if not sentence:
-                    continue
-                item = {
-                    'id': [],
-                    'form': [],
-                    'lemma': [],
-                    'upos': [],
-                    'xpos': [],
-                    'feats': [],
-                    'head': [],
-                    'deprel': [],
-                    'deps': [],
-                    'misc': []
-                }
-                for token in sentence:
-                    for key in item:
-                        item[key].append(token[key])
 
-                if self.validate(item):
-                    yield self.text_to_instance(**item)
+        if isinstance(file_path, str):
+            file_path = [file_path]
+
+        for fp in file_path:
+            with open(fp, 'r', encoding='utf-8') as file_:
+                for sentence in parse_incr(file_):
+                    if not sentence:
+                        continue
+                    item = {
+                        'id': [],
+                        'form': [],
+                        'lemma': [],
+                        'upos': [],
+                        'xpos': [],
+                        'feats': [],
+                        'head': [],
+                        'deprel': [],
+                        'deps': [],
+                        'misc': []
+                    }
+                    for token in sentence:
+                        for key in item:
+                            item[key].append(token[key])
+
+                    if self.validate(item):
+                        yield self.text_to_instance(**item)
 
     @overrides
     def text_to_instance(
@@ -192,11 +199,14 @@ class UniversalDependencyReader(SpanReader):
         fields = self._index_sentence(form)
         spans = self._reindex_spans(spans, fields)
 
+        head = [hd if hd is not None else -1 for hd in head]
+
         # for each span set its parent (since VIRTUAL_ROOT) is appended we do not
         # need to update the index to 0 based.
+
         parent_ids = TensorField(
-            torch.tensor(([0] + head)[:spans.sequence_length()], dtype=torch.int64),
-            padding_value=0, dtype=torch.int64
+            torch.tensor(([-1] + head)[:spans.sequence_length()], dtype=torch.int64),
+            padding_value=-1, dtype=torch.int64
         )
 
         # extract relationship
@@ -205,22 +215,22 @@ class UniversalDependencyReader(SpanReader):
         deprel_labels = ListField(list(map(dr_partial, ([__VIRTUAL_ROOT__] + deprel)[:spans.sequence_length()])))
         pos_tag_labels = ListField(list(map(pt_partial, ([__VIRTUAL_ROOT__] + upos)[:spans.sequence_length()])))
 
-        # generate span_masks
-        span_masks = TensorField(
-            torch.tensor([0] + ([1] * len(form)), dtype=torch.bool),
-            padding_value=False, dtype=torch.bool
-        )
 
-        # we also need a parent mask for valid parents
+        # Only apply parent mask if the task is 'deprel'
+        if self.task == 'deprel':
+            fields['parent_ids'] = parent_ids
 
-        fields['span_mask'] = span_masks
-        fields['parent_ids'] = parent_ids
-        fields['parent_mask'] = TensorField(
-            parent_ids.tensor < spans.sequence_length(), dtype=torch.bool)
+            # TODO: move this into model
+            fields['parent_mask'] = TensorField(
+                torch.logical_and(0 <= parent_ids.tensor, parent_ids.tensor < spans.sequence_length()), dtype=torch.bool)
         fields['spans'] = spans
 
-        fields['deprel_labels'] = deprel_labels
-        fields['pos_tag_labels'] = pos_tag_labels
+        if self.task == 'deprel':
+            fields['labels'] = deprel_labels
+        elif self.task == 'pos_tags':
+            fields['labels'] = pos_tag_labels
+        else:
+            raise NotImplementedError
 
         return Instance(fields)
 
@@ -300,7 +310,7 @@ class WikiAnnReader(SpanReader):
         self.cache_dir = cache_dir
 
     @overrides
-    def _read(self, file_path: Text) -> Iterable[Instance]:
+    def _read(self, file_path: Union[Text, List[Text]]) -> Iterable[Instance]:
         """Read the wiki_ann data for the items.
 
         file_path: Pseudo file_path that serves as
@@ -309,42 +319,46 @@ class WikiAnnReader(SpanReader):
         format: lang/split
         """
 
-        lang, split = file_path.split('/')
-        
-        dataset = datasets.load_dataset(
-            path=self.dataset_stem,
-            name=lang,
-            split=split
-        )
+        if isinstance(file_path, str):
+            file_path = [file_path]
 
-        for item in dataset:
-            ner_tags = [self.hf_ids_to_labels[idx] for idx in item['ner_tags']]
-            tracking_pos = None
+        for fp in file_path:
+            lang, split = fp.split('/')
+            
+            dataset = datasets.load_dataset(
+                path=self.dataset_stem,
+                name=lang,
+                split=split
+            )
 
-            spans = []
+            for item in dataset:
+                ner_tags = [self.hf_ids_to_labels[idx] for idx in item['ner_tags']]
+                tracking_pos = None
 
-            for tidx, tag in enumerate(ner_tags):
-                if tag == 'O':
-                    if tracking_pos is not None:
-                        spans.append((tracking_pos, tidx))
-                        tracking_pos = None
+                spans = []
 
-                elif tag.startswith('B'):
-                    if tracking_pos is not None:
-                        spans.append((tracking_pos, tidx - 1))
-                    tracking_pos = tidx
+                for tidx, tag in enumerate(ner_tags):
+                    if tag == 'O':
+                        if tracking_pos is not None:
+                            spans.append((tracking_pos, tidx))
+                            tracking_pos = None
 
-                elif tag.startswith('I'):
-                    continue
+                    elif tag.startswith('B'):
+                        if tracking_pos is not None:
+                            spans.append((tracking_pos, tidx - 1))
+                        tracking_pos = tidx
 
-            data_obj = {
-                'tokens': item['tokens'],
-                'spans': spans,
-                'labels': [label.split(':')[0] for label in item['spans']]
-            }
+                    elif tag.startswith('I'):
+                        continue
 
-            if self.validate(data_obj):
-                yield self.text_to_instance(**data_obj)
+                data_obj = {
+                    'tokens': item['tokens'],
+                    'spans': spans,
+                    'labels': [label.split(':')[0] for label in item['spans']]
+                }
+
+                if self.validate(data_obj):
+                    yield self.text_to_instance(**data_obj)
 
     def validate(self, item: Dict[Text, Any]) -> bool:
         """Check whether spans and labels are the same length.
