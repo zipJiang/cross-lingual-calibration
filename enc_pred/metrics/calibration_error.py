@@ -11,15 +11,43 @@ import matplotlib.pyplot as plt
 class ExpectedCalibrationError(Metric):
     """Computes labeled expected calibration error.
     """
-    def __init__(self, num_bins: int = 10, epsilon: float = 1e-8):
+    def __init__(
+        self,
+        num_bins: int = 10,
+        steps: Optional[List[int]] = None,
+        epsilon: float = 1e-12):
         """
         """
+        super().__init__()
         self._num_bins = num_bins
         self._step_size = 1 / self._num_bins
+        self._grouping_steps = steps
+        if self._grouping_steps is not None:
+            self._validate_grouping_steps()
         self._counter = np.zeros(self._num_bins, dtype=np.float32)
         self._confidence_list = np.zeros(self._num_bins, dtype=np.float32)
         self._accuracy_indicators = np.zeros(self._num_bins, dtype=np.float32)
         self._epsilon = epsilon
+
+    def _validate_grouping_steps(self):
+        """
+        """
+        for step_size in self._grouping_steps:
+            assert self._num_bins % step_size == 0, f"sp: {step_size} is not compatible with #{self._num_bins}!"
+
+    @property
+    def num_bins(self) -> int:
+        """
+        """
+        return self._num_bins
+
+    @num_bins.setter
+    def num_bins(self, num_bins: int):
+        """
+        """
+        self._num_bins = num_bins
+        self._step_size = 1 / self._num_bins
+        self.reset()
 
     @overrides
     def __call__(self, predictions: torch.Tensor,
@@ -33,19 +61,17 @@ class ExpectedCalibrationError(Metric):
         mask: --- [batch_size]
         """
 
-        predictions = predictions[mask]
-        gold_labels = gold_labels[mask]
+        predictions, gold_labels, mask = self.detach_tensors(predictions, gold_labels, mask)
 
-        predictions, gold_labels = self.detach_tensors(predictions, gold_labels)
+        if mask is not None:
+            predictions = predictions[mask]
+            gold_labels = gold_labels[mask]
+
         confidence = torch.nn.functional.softmax(predictions, dim=-1).cpu().numpy()
-
-        # print('-' * 20)
-        # print(predictions)
-        # print(gold_labels)
-        # print('-' * 20)
 
         label = gold_labels.cpu().numpy()
         predicted_confidence, pred = confidence.max(axis=1), confidence.argmax(axis=1)
+
         is_correct = pred == label
         is_correct = is_correct.astype(np.float32)
         predicted_confidence = np.expand_dims(predicted_confidence, axis=1)
@@ -74,14 +100,24 @@ class ExpectedCalibrationError(Metric):
         here we maintain the counter and the categorical information for plotting
         and analysis.
         """
-        category_ce = np.absolute(self._accuracy_indicators - self._confidence_list).sum() / (self._counter.sum() + self._epsilon)
+        counter_sum = self._counter.sum()
+        category_ce = np.absolute(self._accuracy_indicators - self._confidence_list).sum() / counter_sum
+        return_dict = {
+            'ECE': category_ce.item()
+        }
+
+        # add combined calibration result
+        for step_size in self._grouping_steps:
+            accuracy_indicator = self._accuracy_indicators.reshape(-1, step_size).sum(axis=-1)
+            confidence_list = self._confidence_list.reshape(-1, step_size).sum(axis=-1)
+
+            ece_at_step_size = np.absolute(accuracy_indicator - confidence_list).sum() / counter_sum
+            return_dict[f'ECE-#{self._num_bins // step_size}'] = ece_at_step_size.item()
 
         if reset:
             self.reset()
 
-        return {
-            'ECE': category_ce.item()
-        }
+        return return_dict
 
     @overrides
     def reset(self):
@@ -138,7 +174,8 @@ class ClassCalibrationError(Metric):
     """Compute class calibration error disregard
     of correct class label.
     """
-    def __init__(self, num_bins: int, num_labels: int, epsilon: float = 1e-8):
+    def __init__(self, num_bins: int, num_labels: int, epsilon: float = 1e-12):
+        super().__init__()
         self._num_bins = num_bins
         self._num_labels = num_labels
         self._step_size = 1 / self._num_bins
@@ -155,6 +192,19 @@ class ClassCalibrationError(Metric):
         self._label_dist = np.zeros((self._num_bins, self._num_labels), dtype=np.float32)
         self._neg_label_dist = np.zeros((self._num_bins, self._num_labels), dtype=np.float32)
 
+    @property
+    def num_bins(self) -> int:
+        """
+        """
+        return self._num_bins
+
+    @num_bins.setter
+    def num_bins(self, num_bins: int):
+        """
+        """
+        self._num_bins = num_bins
+        self._step_size = 1 / self._num_bins
+        self.reset()
 
     @overrides
     def __call__(self, predictions: torch.Tensor,
@@ -167,7 +217,7 @@ class ClassCalibrationError(Metric):
         gold_labels: --- [batch_size]
         mask: --- [batch_size]
         """
-        predictions, gold_labels = self.detach_tensors(predictions, gold_labels)
+        predictions, gold_labels = self.detach_tensors(predictions, gold_labels, mask)
 
         confidence = predictions.cpu().numpy()
         label = gold_labels.cpu().numpy()
@@ -226,3 +276,62 @@ class ClassCalibrationError(Metric):
         axes.set_ylabel('accuracy')
 
         return fig
+
+
+@Metric.register('brier-score')
+class BrierScore(Metric):
+    def __init__(self):
+        super().__init__()
+
+        self._item_count = 0
+        # we try to rely more on torch instead of numpy
+        self._summation = None
+
+    @overrides
+    def __call__(
+        self, predictions: torch.Tensor,
+        gold_labels: torch.Tensor,
+        mask: Optional[torch.Tensor] = None
+    ):
+        """Shapes:
+        predictions: [batch_size, num_labels]
+        gold_labels: [batch_size]
+        mask: [batch_size]
+        """
+        predictions, gold_labels, mask = self.detach_tensors(predictions, gold_labels, mask)
+
+        with torch.no_grad():
+            if mask is not None:
+                predictions = predictions[mask]
+                gold_labels = gold_labels[mask]
+            
+            batch_size, num_labels = predictions.size()
+            confidence = torch.nn.functional.softmax(predictions, dim=-1)
+
+            targ = torch.nn.functional.one_hot(
+                gold_labels,
+                num_classes=num_labels
+            )
+
+            element_mse = torch.mean(torch.square(confidence - targ), dim=-1)
+            self._item_count += element_mse.shape[0]
+            self._summation = self._summation + element_mse.sum().cpu().numpy() if self._summation is not None else element_mse.sum().cpu().numpy()
+
+    @overrides
+    def reset(self):
+        """
+        """
+        self._item_count = 0
+        self._summation = None
+
+    @overrides
+    def get_metric(self, reset: bool = False) -> Dict[Text, float]:
+        """
+        """
+        return_dict = {
+            'score': (self._summation / self._item_count).item()
+        }
+        if reset:
+            self.reset()
+
+        return return_dict
