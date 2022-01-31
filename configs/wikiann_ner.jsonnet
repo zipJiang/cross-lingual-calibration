@@ -1,5 +1,6 @@
 local dataset_paths = std.parseJson(std.extVar("DATA_PATH"));
 local pretrained_model = std.extVar("PRETRAINED_MODEL");
+local vocab_directory = "/brtx/604-nvme2/zpjiang/encode_predict/data/wikiann/vocabulary";
 local task = std.extVar('TASK');
 
 # training
@@ -12,23 +13,11 @@ local num_bins = 100;
 local steps = [2, 4, 5, 10, 20];
 local learning_rate = std.parseJson(std.extVar("LEARNING_RATE"));
 
-local get_prediction_head(taskname) = {
-    type: if taskname == 'deprel' then 'biaffine' else 'linear-classification-head',
-    with_bias: false,
-    label_namespace: if taskname == 'deprel' then 'deprel_labels' else 'labels'
-} + if taskname == 'deprel' then {
-    activation: {
-        type: 'tanh'
-    },
-    hidden_dim: hidden_dim
-} else {};
-
 {
     dataset_reader: {
-        type: 'universal-dependency',
+        type: 'wikiann',
         max_length: max_length,
-        pretrained_model: pretrained_model,
-        task: task
+        pretrained_model: pretrained_model
     },
     data_loader: {
         type: 'multiprocess',
@@ -42,10 +31,9 @@ local get_prediction_head(taskname) = {
         }
     },
     validation_dataset_reader: {
-        type: 'universal-dependency',
+        type: 'wikiann',
         max_length: max_length,
-        pretrained_model: pretrained_model,
-        task: task
+        pretrained_model: pretrained_model
     },
     validation_data_loader: {
         type: 'multiprocess',
@@ -57,6 +45,11 @@ local get_prediction_head(taskname) = {
             max_tokens: max_length * batch_size * 2,
             sorting_keys: ['tokens']
         }
+    },
+
+    vocabulary: {
+        type: "from_files",
+        directory: vocab_directory
     },
 
     evaluate_on_test: true,
@@ -74,34 +67,24 @@ local get_prediction_head(taskname) = {
         span_extractor: {
             type: 'self_attentive',
         },
-        prediction_head: get_prediction_head(task),
+        prediction_head: {
+            type: 'linear-classification-head',
+            with_bias: false,
+            label_namespace: 'labels'
+        },
         metrics: {
             'performance': {
-                type: if task == 'deprel' then 'attachment-logits' else 'dict-categorical'
+                type: 'fbeta',
+                average: 'micro',
+                labels: [1, 2, 3, 4, 5, 6]
             },
             'ece': {
-                type: if task == 'deprel' then 'ud-calibration' else 'expected-calibration-error',
-                [if task =='deprel' then "arc_metric"]: {
-                        type: 'expected-calibration-error',
-                        num_bins: num_bins,
-                        steps: steps,
-                    },
-                [if task == 'deprel' then "label_metric"]: {
-                        type: 'expected-calibration-error',
-                        num_bins: num_bins,
-                        steps: steps,
-                    },
-                [if task == 'pos_tags' then 'num_bins']: num_bins,
-                [if task == 'pos_tags' then 'steps']: steps,
+                type: 'expected-calibration-error',
+                num_bins: num_bins,
+                steps: steps
             },
             'brier-score': {
-                type: if task == 'deprel' then 'ud-calibration' else 'brier-score',
-                [if task == 'deprel' then "arc_metric"]: {
-                    type: 'brier-score'
-                },
-                [if task == 'deprel' then "label_metric"]: {
-                    type: 'brier-score'
-                }
+                type: 'brier-score'
             }
         },
         # Only useful when there is transformer models.
@@ -124,7 +107,7 @@ local get_prediction_head(taskname) = {
             factor: 0.25,
             patience: 2
         },
-        validation_metric: '+performance::' + if task == 'deprel' then 'LAS' else 'accuracy',
+        validation_metric: '+performance::fscore',
         optimizer: {
             type: 'huggingface_adamw',
             lr: learning_rate,
