@@ -29,8 +29,9 @@ from ..utils.commons import __VIRTUAL_ROOT__
 class SpanReader(DatasetReader, abc.ABC):
     """
     """
-    def __init__(self):
+    def __init__(self, is_prediction: Optional[bool] = False):
         super().__init__()
+        self.is_prediction = is_prediction
 
     def _reindex_spans(
         self, spans: List[Tuple[int, int]],
@@ -57,7 +58,7 @@ class SpanReader(DatasetReader, abc.ABC):
                 end_idx = offsets[boundary[1] - 1][1]
 
             # only preserve meaningful spans
-            if end_idx > self.max_length:
+            if end_idx >= self.max_length:
                 continue
 
             assert end_idx >= start_idx, f'Negative span range detected.'
@@ -110,10 +111,11 @@ class UniversalDependencyReader(SpanReader):
         max_length: int,
         pretrained_model: Text,
         task: Text,
+        is_prediction: Optional[bool] = False
     ):
         """
         """
-        super().__init__()
+        super().__init__(is_prediction)
         self.model_name = pretrained_model
         self.max_length = max_length
         self.task = task
@@ -194,6 +196,8 @@ class UniversalDependencyReader(SpanReader):
         loaded with built-in dataloader.
         """
         gen_unit_spans = lambda x: [(i, i) for i in range(x)]
+        # modify deprel
+        deprel = [relation.split(':')[0] for relation in deprel]
 
         spans = gen_unit_spans(len(form))
         fields = self._index_sentence(form)
@@ -225,12 +229,14 @@ class UniversalDependencyReader(SpanReader):
                 torch.logical_and(0 <= parent_ids.tensor, parent_ids.tensor < spans.sequence_length()), dtype=torch.bool)
         fields['spans'] = spans
 
-        if self.task == 'deprel':
-            fields['labels'] = deprel_labels
-        elif self.task == 'pos_tags':
-            fields['labels'] = pos_tag_labels
-        else:
-            raise NotImplementedError
+        # Only generate labels for training
+        if not self.is_prediction:
+            if self.task == 'deprel':
+                fields['labels'] = deprel_labels
+            elif self.task == 'pos_tags':
+                fields['labels'] = pos_tag_labels
+            else:
+                raise NotImplementedError
 
         return Instance(fields)
 
@@ -262,7 +268,7 @@ class UniversalDependencyReader(SpanReader):
                 end_idx = offsets[boundary[1] - 1][1]
 
             # only preserve meaningful spans
-            if end_idx > self.max_length:
+            if end_idx >= self.max_length:
                 continue
 
             assert end_idx >= start_idx, f'Negative span range detected.'
@@ -282,11 +288,12 @@ class WikiAnnReader(SpanReader):
         self,
         max_length: int,
         pretrained_model: Text,
-        cache_dir: Text = 'data/wikiann/'
+        cache_dir: Text = 'data/wikiann/cache',
+        is_prediction: Optional[bool] = False
     ):
         """
         """
-        super().__init__()
+        super().__init__(is_prediction)
         self.model_name = pretrained_model
         self.max_length = max_length
 
@@ -299,13 +306,7 @@ class WikiAnnReader(SpanReader):
             model_name=self.model_name,
             max_length=self.max_length
         )
-
-        self.hf_ids_to_labels = [
-            'O',
-            'B-PER', 'I-PER',
-            'B-ORG', 'I-ORG',
-            'B-LOC', 'I-LOC'
-        ]
+        
         self.dataset_stem = 'wikiann'
         self.cache_dir = cache_dir
 
@@ -328,33 +329,19 @@ class WikiAnnReader(SpanReader):
             dataset = datasets.load_dataset(
                 path=self.dataset_stem,
                 name=lang,
-                split=split
+                split=split,
+                cache_dir=self.cache_dir
             )
 
+            # Here the dataset should be of BIO format
             for item in dataset:
-                ner_tags = [self.hf_ids_to_labels[idx] for idx in item['ner_tags']]
-                tracking_pos = None
-
-                spans = []
-
-                for tidx, tag in enumerate(ner_tags):
-                    if tag == 'O':
-                        if tracking_pos is not None:
-                            spans.append((tracking_pos, tidx))
-                            tracking_pos = None
-
-                    elif tag.startswith('B'):
-                        if tracking_pos is not None:
-                            spans.append((tracking_pos, tidx - 1))
-                        tracking_pos = tidx
-
-                    elif tag.startswith('I'):
-                        continue
+                ner_tags = item['ner_tags']
+                spans = [(i, i) for i in range(len(ner_tags))]
 
                 data_obj = {
                     'tokens': item['tokens'],
                     'spans': spans,
-                    'labels': [label.split(':')[0] for label in item['spans']]
+                    'labels': ner_tags
                 }
 
                 if self.validate(data_obj):
@@ -375,9 +362,15 @@ class WikiAnnReader(SpanReader):
         fields = self._index_sentence(tokens)
         spans = self._reindex_spans(spans, fields)
 
-        labels = ListField(list(map(LabelField, labels[:spans.sequence_length()])))
+        partial_init = partial(
+            LabelField,
+            label_namespace='labels',
+            skip_indexing=True
+        )
 
-        fields['labels'] = labels
+        if not self.is_prediction:
+            labels = ListField(list(map(partial_init, labels[:spans.sequence_length()])))
+            fields['labels'] = labels
         fields['spans'] = spans
 
         return Instance(fields)
