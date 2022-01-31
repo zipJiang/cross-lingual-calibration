@@ -7,7 +7,6 @@ export PRETRAINED_MODEL="xlm-roberta-base"
 export CUDA_DEVICES=0
 export BATCH_SIZE=16
 export NUM_WORKERS=0
-export NUM_BINS=10
 export LEARNING_RATE=0.0001
 
 TASK="pos_tags"
@@ -42,7 +41,7 @@ done
 
 eval "$(conda shell.bash hook)"
 conda activate /brtx/604-nvme1/zpjiang/spanfinder/.env
-BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict"
+BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 
 rm -rf "${SERIALIZATION_DIR}"
 cd "${BASE_DIR}"
