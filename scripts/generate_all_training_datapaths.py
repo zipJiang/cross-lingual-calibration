@@ -71,6 +71,25 @@ def main():
         with open(os.path.join(args.dir, 'en-en.json'), 'w', encoding='utf-8') as file_:
             json.dump(remapped, file_)
 
+    if args.task == 'wikiann':
+        configuration = {
+            'train_data_path': [
+                'en/train'
+            ],
+            'validation_data_path': [
+                'en/validation'
+            ],
+            'test_data_path': [
+                'en/test'
+            ]
+        }
+
+        with open(os.path.join(args.dir, 'en-en.json'), 'w', encoding='utf-8') as file_:
+            json.dump(configuration, file_)
+
+    else:
+        raise NotImplementedError
+
 
 if __name__ == '__main__':
     main()
