@@ -130,6 +130,11 @@ class UniversalDependencyReader(SpanReader):
             max_length=self.max_length
         )
 
+        # For some Asian languages the CLF rel will not appear in the
+        # dataset, so it is possible that we exaclude the label prediction
+        # for calibration purpose.
+        self._additional_mask = {'clf'}
+
     def validate(self, item: Dict[Text, List[Any]]) -> bool:
         """Validate the parsed data from conllu dataset
         to see whether the final result parsed correctly.
@@ -197,7 +202,8 @@ class UniversalDependencyReader(SpanReader):
         """
         gen_unit_spans = lambda x: [(i, i) for i in range(x)]
         # modify deprel
-        deprel = [relation.split(':')[0] for relation in deprel]
+        _remove_unk_labels = lambda x: x if x not in self._additional_mask else __VIRTUAL_ROOT__
+        deprel = [_remove_unk_labels(relation.split(':')[0]) for relation in deprel]
 
         spans = gen_unit_spans(len(form))
         fields = self._index_sentence(form)
@@ -225,8 +231,16 @@ class UniversalDependencyReader(SpanReader):
             fields['parent_ids'] = parent_ids
 
             # TODO: move this into model
+            parent_mask = torch.logical_and(
+                0 <= parent_ids.tensor,
+                parent_ids.tensor < spans.sequence_length()
+            )
+            cls_mask = torch.tensor([False] + [dr not in self._additional_mask for dr in deprel], dtype=torch.bool)
             fields['parent_mask'] = TensorField(
-                torch.logical_and(0 <= parent_ids.tensor, parent_ids.tensor < spans.sequence_length()), dtype=torch.bool)
+                torch.logical_and(cls_mask, parent_mask),
+                dtype=torch.bool
+            )
+                
         fields['spans'] = spans
 
         # Only generate labels for training

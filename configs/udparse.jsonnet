@@ -94,6 +94,7 @@ local get_prediction_head(taskname) = {
                 [if task == 'pos_tags' then 'num_bins']: num_bins,
                 [if task == 'pos_tags' then 'steps']: steps,
             },
+            # Notice that brier-score calculated here isn't accurate for deprel position (arc_metric)
             'brier-score': {
                 type: if task == 'deprel' then 'ud-calibration' else 'brier-score',
                 [if task == 'deprel' then "arc_metric"]: {

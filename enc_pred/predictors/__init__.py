@@ -1,0 +1,1 @@
+from .calibre_predictor import SpanLabelPredictor

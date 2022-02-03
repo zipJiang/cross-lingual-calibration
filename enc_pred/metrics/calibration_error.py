@@ -291,29 +291,35 @@ class BrierScore(Metric):
     def __call__(
         self, predictions: torch.Tensor,
         gold_labels: torch.Tensor,
+        num_labels: Optional[torch.Tensor] = None,
         mask: Optional[torch.Tensor] = None
     ):
         """Shapes:
         predictions: [batch_size, num_labels]
+        num_labels: [batch_size]
         gold_labels: [batch_size]
         mask: [batch_size]
         """
-        predictions, gold_labels, mask = self.detach_tensors(predictions, gold_labels, mask)
+        predictions, gold_labels, num_labels, mask = self.detach_tensors(predictions, gold_labels, num_labels, mask)
 
         with torch.no_grad():
             if mask is not None:
                 predictions = predictions[mask]
                 gold_labels = gold_labels[mask]
             
-            batch_size, num_labels = predictions.size()
+            batch_size, label_dim = predictions.size()
             confidence = torch.nn.functional.softmax(predictions, dim=-1)
 
             targ = torch.nn.functional.one_hot(
                 gold_labels,
-                num_classes=num_labels
+                num_classes=label_dim
             )
 
-            element_mse = torch.mean(torch.square(confidence - targ), dim=-1)
+            if num_labels is not None:
+                element_mse = torch.square(confidence - targ).sum(dim=-1) / num_labels
+            else:
+                element_mse = torch.square(confidence - targ).mean(dim=-1)
+
             self._item_count += element_mse.shape[0]
             self._summation = self._summation + element_mse.sum().cpu().numpy() if self._summation is not None else element_mse.sum().cpu().numpy()
 
