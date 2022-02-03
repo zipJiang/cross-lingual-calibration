@@ -97,6 +97,8 @@ if [[ $STEP -le 1 ]]; then
     mkdir -p ${SERIALIZATION_DIR}eval/
     for filename in $(ls ${DATA_DIR}*.jsonl); do
         filename=$(basename ${filename})
+        # change suffix
+        filename=${filename/jsonl/json}
         if [[ "${filename}" != calibration* ]]; then
             allennlp evaluate \
                 ${SERIALIZATION_DIR} \
