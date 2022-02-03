@@ -46,7 +46,9 @@ export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 export TASK
 export LANG
 export SERIALIZATION_DIR
-export OUTPUT_FILENAME="${SERIALIZATION_DIR}${TASK}-${LANG}.eval.log"
+export OUTPUT_FILENAME="${SERIALIZATION_DIR}eval/${LANG}.json"
+
+mkdir -p ${SERIALIZATION_DIR}eval/
 
 
 allennlp evaluate \

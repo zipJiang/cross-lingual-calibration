@@ -2,6 +2,9 @@
 #SBATCH --partition=brtx6
 #SBATCH --gpus=1
 
+set -i
+set -x
+
 
 export PRETRAINED_MODEL="xlm-roberta-base"
 export CUDA_DEVICES=0
