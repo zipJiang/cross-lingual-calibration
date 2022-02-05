@@ -5,8 +5,7 @@
 set -i
 set -x
 
-
-export PRETRAINED_MODEL="xlm-roberta-base"
+PRETRAINED_MODEL="xlm-roberta-base"
 export CUDA_DEVICES=0
 export BATCH_SIZE=16
 export NUM_WORKERS=0
@@ -39,6 +38,11 @@ do
             shift
             shift
             ;;
+        -p|--pretrained)
+            PRETRAINED_MODEL="$2"
+            shift
+            shift
+            ;;
     esac
 done
 
@@ -48,6 +52,7 @@ BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 
 rm -rf "${SERIALIZATION_DIR}"
 cd "${BASE_DIR}"
+export PRETRAINED_MODEL
 export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 export DATA_PATH="$(cat ${DATA_CONFIG})"
 export TASK

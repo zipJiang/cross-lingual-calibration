@@ -3,6 +3,7 @@
 
 BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 COMMAND=
+STEM=
 
 
 while [[ $# -gt 0 ]];
@@ -11,6 +12,11 @@ do
     case $key in
         --distributed)
             COMMAND=sbatch
+            shift
+            ;;
+        --stem)
+            STEM="$2"
+            shift
             shift
             ;;
     esac
@@ -29,9 +35,9 @@ for lang in "${LANG_LIST[@]}"; do
     for task in "${TASK_LIST[@]}"; do
     declare -a model_dirs=()
         if [ ${task} = "udparse" ]; then
-            model_dirs=("${RUN_DIR}pos_tags_en_en" "${RUN_DIR}deprel_en_en")
+            model_dirs=("${RUN_DIR}${STEM}_pos_tags" "${RUN_DIR}${STEM}_deprel")
         elif [ ${task} == 'wikiann' ]; then
-            model_dirs=("${RUN_DIR}ner_en_en")
+            model_dirs=("${RUN_DIR}${STEM}_ner")
         fi
 
         for sdir in "${model_dirs[@]}"; do

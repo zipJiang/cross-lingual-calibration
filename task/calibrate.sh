@@ -61,6 +61,11 @@ while [[ $# -gt 0 ]]; do
         #     shift
         #     shift
         #     ;;
+        --step)
+            STEP="$2"
+            shift
+            shift
+            ;;
     esac
 done
 
@@ -98,14 +103,13 @@ if [[ $STEP -le 1 ]]; then
     for filename in $(ls ${DATA_DIR}*.jsonl); do
         filename=$(basename ${filename})
         # change suffix
-        filename=${filename/jsonl/json}
         if [[ "${filename}" != calibration* ]]; then
             allennlp evaluate \
                 ${SERIALIZATION_DIR} \
                 "${DATA_DIR}${filename}" \
                 --include-package enc_pred \
                 --file-friendly-logging \
-                --output-file "${SERIALIZATION_DIR}eval/${filename}"
+                --output-file "${SERIALIZATION_DIR}eval/${filename/jsonl/json}"
         fi
     done
 fi
