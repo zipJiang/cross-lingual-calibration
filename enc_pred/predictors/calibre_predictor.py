@@ -51,7 +51,7 @@ class SpanLabelPredictor(Predictor):
                 span_mask = gen_span_mask(batch['spans'])
 
                 if 'parent_mask' in batch:
-                    num_spans = span_mask.sum(dim=-1).unsqueeze(1).extend(-1, span_mask.shape[1])
+                    num_spans = span_mask.sum(dim=-1).unsqueeze(1).expand(-1, span_mask.shape[1])
                     span_mask = torch.logical_and(span_mask, batch['parent_mask'])
 
                 # return_dict['labels'].append(labels[span_mask])
@@ -62,7 +62,7 @@ class SpanLabelPredictor(Predictor):
                 #     return_dict['selection_labels'].append(selection_labels[span_mask])
 
                 if selection_logits is None:
-                    for lgt, lb, num in zip(
+                    for lgt, lb in zip(
                         logits[span_mask].cpu().split(1, dim=0),
                         labels[span_mask].cpu().split(1, dim=0)
                     ):
