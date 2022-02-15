@@ -115,15 +115,15 @@ local get_prediction_head(taskname) = {
         }
     },
     trainer: {
-        num_epochs: 8,
-        patience: 4,
+        num_epochs: 256,
+        patience: 8,
         cuda_device: cuda_device,
         grad_norm: 1.0,
         learning_rate_scheduler: {
             type: "reduce_on_plateau",
             mode: "max",
             factor: 0.25,
-            patience: 2
+            patience: 4
         },
         validation_metric: '+performance::' + if task == 'deprel' then 'LAS' else 'accuracy',
         optimizer: {

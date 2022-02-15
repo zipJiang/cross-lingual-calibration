@@ -66,15 +66,15 @@ local steps = [2, 4, 5, 10, 20];
     },
 
     trainer: {
-        num_epochs: 256,
-        patience: 32,
+        num_epochs: 32,
+        patience: 8,
         cuda_device: cuda_device,
         grad_norm: 5.0,
         learning_rate_scheduler: {
             type: "reduce_on_plateau",
-            mode: "max",
+            mode: "min",
             factor: 0.25,
-            patience: 8
+            patience: 4
         },
         validation_metric: "-scaled::ece::ECE",
         optimizer: {
@@ -84,7 +84,7 @@ local steps = [2, 4, 5, 10, 20];
         chekcpointer: {
             type: 'default',
             keep_most_recent_by_count: 1
-        }
+        },
     },
 
     validation_data_path: validation_data_path,
