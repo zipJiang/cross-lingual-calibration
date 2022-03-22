@@ -1,7 +1,6 @@
 local dataset_paths = std.parseJson(std.extVar("DATA_PATH"));
 local pretrained_model = std.extVar("PRETRAINED_MODEL");
 local vocab_directory = "/brtx/604-nvme2/zpjiang/encode_predict/data/wikiann/vocabulary";
-local task = std.extVar('TASK');
 
 # training
 local max_length = 512;
@@ -68,7 +67,7 @@ local learning_rate = std.parseJson(std.extVar("LEARNING_RATE"));
             type: 'self_attentive',
         },
         prediction_head: {
-            type: 'linear-classification-head',
+            type: 'linear-span-classification-head',
             with_bias: false,
             label_namespace: 'labels'
         },
