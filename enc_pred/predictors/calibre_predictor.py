@@ -88,3 +88,43 @@ class SpanLabelPredictor(Predictor):
                         return_list.append(item_dict)
 
         return return_list
+
+
+@Predictor.register('sentence-label-predictor')
+class SentenceLabelPredictor(Predictor):
+    """
+    """
+    def predict(self, file_path: Text) -> List[JsonDict]:
+        """
+        """
+        dataloader = MultiProcessDataLoader(
+            reader=self._dataset_reader,
+            data_path=file_path,
+            batch_size=64,
+            shuffle=False,
+            cuda_device=self.cuda_device
+        )
+
+        dataloader.index_with(self._model.vocab)
+
+        return_list = []
+
+        with torch.no_grad():
+            for batch in tqdm(dataloader):
+                move_to_device(batch, self.cuda_device)
+                result_dict = self._model(**batch)
+
+                # and now try to combine result_dict items with batch labels
+                logits = result_dict['logits']  # of shape [batch_size, num_labels]
+                labels = batch['labels']
+                
+                for lgt, lbl in zip(
+                    logits.cpu().split(1, dim=0),
+                    labels.cpu().split(1, dim=0)):
+
+                    return_list.append({
+                        'logit': lgt.tolist()[0],
+                        'label': lbl.item()
+                    })
+
+        return return_list
