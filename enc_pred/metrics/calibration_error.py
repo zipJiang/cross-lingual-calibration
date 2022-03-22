@@ -107,12 +107,13 @@ class ExpectedCalibrationError(Metric):
         }
 
         # add combined calibration result
-        for step_size in self._grouping_steps:
-            accuracy_indicator = self._accuracy_indicators.reshape(-1, step_size).sum(axis=-1)
-            confidence_list = self._confidence_list.reshape(-1, step_size).sum(axis=-1)
+        if self._grouping_steps is not None:
+            for step_size in self._grouping_steps:
+                accuracy_indicator = self._accuracy_indicators.reshape(-1, step_size).sum(axis=-1)
+                confidence_list = self._confidence_list.reshape(-1, step_size).sum(axis=-1)
 
-            ece_at_step_size = np.absolute(accuracy_indicator - confidence_list).sum() / counter_sum
-            return_dict[f'ECE-#{self._num_bins // step_size}'] = ece_at_step_size.item()
+                ece_at_step_size = np.absolute(accuracy_indicator - confidence_list).sum() / counter_sum
+                return_dict[f'ECE-#{self._num_bins // step_size}'] = ece_at_step_size.item()
 
         if reset:
             self.reset()
@@ -153,13 +154,17 @@ class ExpectedCalibrationError(Metric):
         y_accu = self._accuracy_indicators / (self._counter + self._epsilon)
 
         fig, axes = plt.subplots(1, 1)
-        axes.set_title("Reliability Diagram")
+        axes.set_title("")
 
         axes.bar(x, y_accu, width=self._step_size, align='edge')
         axes.plot([0, 1], [0, 1], color='red')
 
-        axes.set_xlabel('confidence')
-        axes.set_ylabel('accuracy')
+        axes.set_xlabel('confidence', fontsize=15)
+        axes.set_ylabel('accuracy', fontsize=15)
+
+        axes.tick_params(axis="both", which='major', labelsize=15)
+        axes.tick_params(axis="both", which='minor', labelsize=2)
+        axes.locator_params(tight=True, nbins=4)
 
         return fig
 
@@ -267,13 +272,17 @@ class ClassCalibrationError(Metric):
         y_accu = self._label_dist[:, class_idx] / ((self._label_dist + self._neg_label_dist)[:, class_idx] + self._epsilon)
 
         fig, axes = plt.subplots(1, 1)
-        axes.set_title("Reliability Diagram")
+        axes.set_title("")
 
         axes.bar(x, y_accu, width=self._step_size, align='edge')
         axes.plot([0, 1], [0, 1], color='red')
 
         axes.set_xlabel('confidence')
         axes.set_ylabel('accuracy')
+
+        axes.tick_params(axis="both", which='major', labelsize=15)
+        axes.tick_params(axis="both", which='minor', labelsize=2)
+        axes.locator_params(tight=True, nbins=4)
 
         return fig
 
@@ -315,10 +324,14 @@ class BrierScore(Metric):
                 num_classes=label_dim
             )
 
-            if num_labels is not None:
-                element_mse = torch.square(confidence - targ).sum(dim=-1) / num_labels
-            else:
-                element_mse = torch.square(confidence - targ).mean(dim=-1)
+            # if num_labels is not None:
+            #     element_mse = torch.square(confidence - targ).sum(dim=-1) / num_labels
+            # else:
+            #     element_mse = torch.square(confidence - targ).mean(dim=-1)
+
+            # This is incorrect, and the Brier score only needs to be calculated for the summation of the
+            # number of predictions.
+            element_mse = torch.square(confidence - targ).sum(dim=-1)
 
             self._item_count += element_mse.shape[0]
             self._summation = self._summation + element_mse.sum().cpu().numpy() if self._summation is not None else element_mse.sum().cpu().numpy()
