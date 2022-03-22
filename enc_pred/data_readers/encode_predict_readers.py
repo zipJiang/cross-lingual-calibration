@@ -176,6 +176,9 @@ class UniversalDependencyReader(SpanReader):
                         'misc': []
                     }
                     for token in sentence:
+                        # This skips items with span annotation
+                        if not isinstance(token['id'], int):
+                            continue
                         for key in item:
                             item[key].append(token[key])
 
@@ -235,7 +238,7 @@ class UniversalDependencyReader(SpanReader):
                 0 <= parent_ids.tensor,
                 parent_ids.tensor < spans.sequence_length()
             )
-            cls_mask = torch.tensor([False] + [dr not in self._additional_mask for dr in deprel], dtype=torch.bool)
+            cls_mask = torch.tensor([False] + [dr != __VIRTUAL_ROOT__ for dr in deprel], dtype=torch.bool)
             fields['parent_mask'] = TensorField(
                 torch.logical_and(cls_mask, parent_mask),
                 dtype=torch.bool

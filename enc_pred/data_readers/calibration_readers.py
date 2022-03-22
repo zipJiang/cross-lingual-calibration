@@ -33,7 +33,7 @@ class CalibrationReader(DatasetReader):
             for line in file_:
                 data = json.loads(line)
 
-                logit = data[self._logits_key]
+                logit = [lg if lg != float('-inf') else -2e8 for lg in data[self._logits_key]]
                 label = data[self._labels_key]
 
                 yield self.text_to_instance(logit, label)
