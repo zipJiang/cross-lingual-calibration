@@ -39,7 +39,7 @@ def main():
 
     predictor = SpanLabelPredictor.from_path(
         archive_path=args.archive_path,
-        predictor_name='span-label-predictor',
+        predictor_name='span-label-predictor' if args.archive_path.find('xnli') == -1 else 'sentence-label-predictor',
         cuda_device=args.cuda_devices
     )
 

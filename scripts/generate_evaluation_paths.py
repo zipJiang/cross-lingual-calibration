@@ -15,7 +15,7 @@ def parse_args():
     parser.add_argument(
         '--task', action='store', dest='task',
         type=str, required=True, help='Which task to represent.',
-        choices=['udparse', 'wikiann'])
+        choices=['udparse', 'wikiann', 'xnli'])
 
     parser.add_argument(
         '--lang', action='store', dest='lang',
@@ -74,12 +74,31 @@ def main():
             'calibration-train': 'en/validation[:3000]',
             'calibration-dev': 'en/validation[3000:]'
         }
+    elif args.task == 'xnli':
+        config = {
+            'ar': 'data/xnli-test/ar.jsonl',
+            'de': 'data/xnli-test/de.jsonl',
+            'en': 'data/xnli-test/en.jsonl',
+            'es': 'data/xnli-test/es.jsonl',
+            'fr': 'data/xnli-test/fr.jsonl',
+            'hi': 'data/xnli-test/hi.jsonl',
+            'ru': 'data/xnli-test/ru.jsonl',
+            'zh': 'data/xnli-test/zh.jsonl',
+            'calibration-train': [
+                'data/multinli_1.0/multinli_1.0_dev_matched.jsonl',
+                'data/multinli_1.0/multinli_1.0_dev_mismatched.jsonl'
+            ],
+            'calibration-dev': [
+                'data/xnli-dev/en.jsonl'
+            ]
+        }
     else:
         raise NotImplementedError
 
     assert args.lang in config, f'requested language: {args.lang} not in {config.keys()}!'
 
     if args.return_dict:
+        # We don't have to check conditions because the original data_reader allwos list input.
         print(json.dumps({'file_path': [config[args.lang]]}))
     else:
         return_val = config[args.lang] if isinstance(config[args.lang], str) else ' '.join(config[args.lang])
