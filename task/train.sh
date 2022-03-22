@@ -7,9 +7,11 @@ set -x
 
 PRETRAINED_MODEL="xlm-roberta-base"
 export CUDA_DEVICES=0
-export BATCH_SIZE=16
+export BATCH_SIZE=32
 export NUM_WORKERS=0
-export LEARNING_RATE=0.0001
+export EPOCHS=128
+export LEARNING_RATE=0.00001
+export PATIENCE=8
 
 TASK="pos_tags"
 
@@ -43,6 +45,21 @@ do
             shift
             shift
             ;;
+        -l|--learning_rate)
+            LEARNING_RATE="$2"
+            shift
+            shift
+            ;;
+        -e|--epochs)
+            EPOCHS="$2"
+            shift
+            shift
+            ;;
+        --patience)
+            PATIENCE="$2"
+            shift
+            shift
+            ;;
     esac
 done
 
@@ -55,6 +72,8 @@ cd "${BASE_DIR}"
 export PRETRAINED_MODEL
 export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 export DATA_PATH="$(cat ${DATA_CONFIG})"
+export EPOCHS
+export PATIENCE
 export TASK
 
 python3 -um allennlp train --include-package enc_pred --file-friendly-logging \

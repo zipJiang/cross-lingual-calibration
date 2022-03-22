@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 #SBATCH --partition=brtx6
 #SBATCH --gpus=1
 

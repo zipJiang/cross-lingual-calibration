@@ -2,13 +2,13 @@
 #SBATCH --partition=brtx6
 #SBATCH --gpus=1
 
+DAT_DIR=
 TRAIN_DATA_PATH=
 VALIDATION_DATA_PATH=
 TEST_DATA_PATH=
-LEARNING_RATE=0.1
+LEARNING_RATE=0.01
 LABEL_KEY='label'
 LOGIT_KEY='logit'
-ARCHIVE_DIR=
 
 export BATCH_SIZE=4096
 export CONGIFURATION_PATH=/brtx/604-nvme2/zpjiang/encode_predict/configs/calibration.jsonnet
@@ -39,9 +39,9 @@ while [[ $# -gt 0 ]]; do
         #     shift
         #     shift
         #     ;;
-        --archive_dir)
-            ARCHIVE_DIR="$2"
-            [[ "${ARCHIVE_DIR}" != */ ]] && ARCHIVE_DIR="${ARCHIVE_DIR}/"
+        --data_dir)
+            DATA_DIR="$2"
+            [[ "${DATA_DIR}" != */ ]] && DATA_DIR="${DATA_DIR}/"
             shift
             shift
             ;;
@@ -80,11 +80,11 @@ export LABEL_KEY
 export LOGIT_KEY
 
 # extract data_file_path from the data_dir
-export SERIALIZATION_DIR="$(dirname ${ARCHIVE_DIR})/$(basename ${ARCHIVE_DIR})-calibration-${LOGIT_KEY}/"
-export DATA_DIR=${ARCHIVE_DIR}calibration/
+export DATA_DIR
+export SERIALIZATION_DIR=${DATA_DIR}/calibration/
 export TRAIN_DATA_PATH="${DATA_DIR}calibration-train.jsonl"
 export VALIDATION_DATA_PATH="${DATA_DIR}calibration-dev.jsonl"
-export TEST_DATA_PATH="${DATA_DIR}en.jsonl"
+export TEST_DATA_PATH="${DATA_DIR}calibration-test.jsonl"
 
 
 # TODO: adding a layer of step control

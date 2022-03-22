@@ -1,16 +1,17 @@
-# !/bin/bash
+#!/bin/bash
 # train_all.sh this script runs the main script train.sh three times to train model for all three tasks (dispatch three tasks)
-set -i
-set -x
 
 BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 
 WIKIANN_CONFIG="${BASE_DIR}configs/wikiann_ner.jsonnet"
 UDPARSE_CONFIG="${BASE_DIR}configs/udparse.jsonnet"
+XNLI_CONFIG="${BASE_DIR}configs/xnli.jsonnet"
 PRETRAINED_MODEL="xlm-roberta-base"
+DCONFIG_FILENAME=en-en.json
 STEM=
 
 COMMAND=
+declare -a TASK_LIST=("wikiann" "xnli" "deprel")
 
 
 while [[ $# -gt 0 ]]
@@ -31,30 +32,53 @@ do
             shift
             shift
             ;;
+        --dconfig)
+            DCONFIG_FILENAME="$2"
+            shift
+            shift
+            ;;
+        --task)
+            TASK_LIST=( $2 )
+            shift
+            shift
+            ;;
     esac
 done
 
 
-# first, the udparse experiments with task pos_tags
-${COMMAND} ${BASE_DIR}task/train.sh \
-    --serialization_dir "${BASE_DIR}runs/${STEM}_pos_tags" \
-    --task "pos_tags" \
-    --configuration ${UDPARSE_CONFIG} \
-    --data_config "${BASE_DIR}data/udparse_train/en-en.json" \
-    --pretrained "${PRETRAINED_MODEL}"
+for task_name in "${TASK_LIST[@]}"; do
 
-# then, the udparse experiments with task deprel
-${COMMAND} ${BASE_DIR}task/train.sh \
-    --serialization_dir "${BASE_DIR}runs/${STEM}_deprel" \
-    --task "deprel" \
-    --configuration ${UDPARSE_CONFIG} \
-    --data_config "${BASE_DIR}data/udparse_train/en-en.json" \
-    --pretrained ${PRETRAINED_MODEL}
+    # TODO: set learning rate for different configuration
+    if [ ${task_name} == 'udparse' ]; then
+        ${COMMAND} ${BASE_DIR}task/train.sh \
+            --serialization_dir "${BASE_DIR}runs/${STEM}_pos_tags" \
+            --task "pos_tags" \
+            --configuration ${UDPARSE_CONFIG} \
+            --data_config "${BASE_DIR}data/udparse_train/${DCONFIG_FILENAME}" \
+            --pretrained "${PRETRAINED_MODEL}"
 
-# then, the ner task
-${COMMAND} ${BASE_DIR}task/train.sh \
-    --serialization_dir "${BASE_DIR}runs/${STEM}_ner" \
-    --task "ner" \
-    --configuration ${WIKIANN_CONFIG} \
-    --data_config "${BASE_DIR}data/wikiann/data_config/en-en.json" \
-    --pretrained ${PRETRAINED_MODEL}
+        # then, the udparse experiments with task deprel
+        ${COMMAND} ${BASE_DIR}task/train.sh \
+            --serialization_dir "${BASE_DIR}runs/${STEM}_deprel" \
+            --task "deprel" \
+            --configuration ${UDPARSE_CONFIG} \
+            --data_config "${BASE_DIR}data/udparse_train/${DCONFIG_FILENAME}" \
+            --pretrained ${PRETRAINED_MODEL}
+    elif [ ${task_name} == 'wikiann' ]; then
+        # then, the ner task
+        ${COMMAND} ${BASE_DIR}task/train.sh \
+            --serialization_dir "${BASE_DIR}runs/${STEM}_ner" \
+            --task "ner" \
+            --configuration ${WIKIANN_CONFIG} \
+            --data_config "${BASE_DIR}data/wikiann/data_config/${DCONFIG_FILENAME}" \
+            --pretrained ${PRETRAINED_MODEL}
+    elif [ ${task_name} == 'xnli' ]; then
+        ${COMMAND} ${BASE_DIR}task/train.sh \
+            --serialization_dir "${BASE_DIR}runs/${STEM}_ner" \
+            --task "xnli" \
+            --configuration ${XNLI_CONFIG} \
+            --data_config "${BASE_DIR}data/XNLI-1.0/data_configs/${DCONFIG_FILENAME}" \
+            --pretrained ${PRETRAINED_MODEL}
+    fi
+
+done
