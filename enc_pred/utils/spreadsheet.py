@@ -88,6 +88,38 @@ TYPE_TO_FEATURES = {
             ]
         },
     ],
+    'xnli': [
+        {
+            'suffix': '',
+            'content': [
+                {
+                    'label': 'Acc',
+                    'keys': [
+                        'performance::accuracy'
+                    ]
+                }
+            ]
+        },
+        {
+            'suffix': '-calibration-logit',
+            'content': [
+                {
+                    'label': 'brier',
+                    'keys': [
+                        'ori::brier::score',
+                        'scaled::brier::score'
+                    ]
+                },
+                {
+                    'label': 'ECE',
+                    'keys': [
+                        'ori::ece::ECE',
+                        'scaled::ece::ECE'
+                    ]
+                }
+            ]
+        },
+    ],
     'ner': [
         {
             'suffix': '',
