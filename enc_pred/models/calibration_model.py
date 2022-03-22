@@ -62,7 +62,8 @@ class CalibrationModel(Model):
         # calculate loss
         loss_func = torch.nn.CrossEntropyLoss()
         return {
-            'loss': loss_func(return_struct.logits, labels)
+            'loss': loss_func(return_struct.logits, labels),
+            'logits': return_struct.logits
         }
 
     def get_metrics(self, reset: bool = False) -> Dict[Text, float]:
