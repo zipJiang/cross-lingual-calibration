@@ -4,6 +4,8 @@ local labels_key = std.extVar("LABEL_KEY");
 local batch_size = std.parseJson(std.extVar("BATCH_SIZE"));
 local train_data_path = std.extVar("TRAIN_DATA_PATH");
 local test_data_path = std.extVar("TEST_DATA_PATH");
+local calibration_module_type = std.extVar("CALIBRATION_MODULE_TYPE");
+local num_inducing_points = std.parseJson(std.extVar("NUM_INDUCING_POINTS"));
 local validation_data_path = std.extVar("VALIDATION_DATA_PATH");
 local learning_rate = std.parseJson(std.extVar("LEARNING_RATE"));
 
@@ -41,7 +43,19 @@ local steps = [2, 4, 5, 10, 20];
     model: {
         type: "calibration-model",
         scaling_module: {
-            type: 'temperature-scaling',
+            type: calibration_module_type,
+            [if calibration_module_type == 'gp-calibration' then "num_inducing_points"]: num_inducing_points,
+            [if calibration_module_type == 'gp-calibration' then "data_loader"]: {
+                type: 'simple',
+                shuffle: false,
+                batch_size: batch_size,
+                data_path: train_data_path,
+                reader: {
+                    type: 'calibration-reader',
+                    logits_key: logits_key,
+                    labels_key: labels_key
+                },
+            },
         },
         ori_metrics: {
             "ece": {

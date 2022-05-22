@@ -54,7 +54,7 @@ local get_prediction_head(taskname) = {
         cuda_device: cuda_device,
         batch_sampler: {
             type: "max_tokens_sampler",
-            max_tokens: max_length * batch_size * 2,
+            max_tokens: max_length * batch_size,
             sorting_keys: ['tokens']
         }
     },
