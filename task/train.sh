@@ -7,13 +7,13 @@ set -x
 
 PRETRAINED_MODEL="xlm-roberta-base"
 export CUDA_DEVICES=0
-export BATCH_SIZE=32
 export NUM_WORKERS=0
 export EPOCHS=128
 export LEARNING_RATE=0.00001
 export PATIENCE=8
 
 TASK="pos_tags"
+BATCH_SIZE=32
 
 
 while [[ $# -gt 0 ]]
@@ -42,6 +42,9 @@ do
             ;;
         -p|--pretrained)
             PRETRAINED_MODEL="$2"
+            [[ ${PRETRAINED_MODEL} == *large* ]] && BATCH_SIZE=8
+            echo "${PRETRAINED_MODEL}"
+            echo "batch_size = ${BATCH_SIZE}"
             shift
             shift
             ;;
@@ -64,7 +67,7 @@ do
 done
 
 eval "$(conda shell.bash hook)"
-conda activate /brtx/604-nvme1/zpjiang/spanfinder/.env
+conda activate enc-pred
 BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 
 rm -rf "${SERIALIZATION_DIR}"
@@ -74,6 +77,7 @@ export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 export DATA_PATH="$(cat ${DATA_CONFIG})"
 export EPOCHS
 export PATIENCE
+export BATCH_SIZE
 export TASK
 
 python3 -um allennlp train --include-package enc_pred --file-friendly-logging \

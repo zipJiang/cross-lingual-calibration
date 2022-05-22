@@ -6,7 +6,7 @@ set -x
 # This shellscript run SpanFinder prediction over force-decoding input files
 # and generate a set of input files for the calibration module.
 eval "$(conda shell.bash hook)"
-conda activate /brtx/604-nvme1/zpjiang/spanfinder/.env
+conda activate enc-pred
 BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 SPANFINDER_BASE_DIR="/brtx/604-nvme2/zpjiang/spanfinder_eval/"
 SCRIPT_DIR="${BASE_DIR}scripts/"

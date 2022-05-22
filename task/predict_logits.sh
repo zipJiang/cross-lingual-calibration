@@ -7,7 +7,7 @@ SCRIPT_DIR=${BASE_DIR}scripts/
 DATA_DIR=${DATA_DIR}data/
 
 eval "$(conda shell.bash hook)"
-conda activate /brtx/604-nvme1/zpjiang/spanfinder/.env
+conda activate enc-pred
 export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 
 LANG=

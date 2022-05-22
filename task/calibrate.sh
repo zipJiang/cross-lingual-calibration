@@ -8,6 +8,8 @@ TEST_DATA_PATH=
 LEARNING_RATE=0.1
 LABEL_KEY='label'
 LOGIT_KEY='logit'
+NUM_INDUCING_POINTS=10
+CALIBRATION_MODULE_TYPE='temperature-scaling'
 ARCHIVE_DIR=
 
 export BATCH_SIZE=4096
@@ -61,6 +63,16 @@ while [[ $# -gt 0 ]]; do
         #     shift
         #     shift
         #     ;;
+        --module)
+            CALIBRATION_MODULE_TYPE="$2"
+            shift
+            shift
+            ;;
+        --num_inducing_points)
+            NUM_INDUCING_POINTS="$2"
+            shift
+            shift
+            ;;
         --step)
             STEP="$2"
             shift
@@ -70,7 +82,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 eval "$(conda shell.bash hook)"
-conda activate /brtx/604-nvme1/zpjiang/spanfinder/.env
+conda activate enc-pred
 BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 SCRIPT_DIR="${BASE_DIR}scripts/"
 
@@ -78,6 +90,8 @@ export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 export LEARNING_RATE
 export LABEL_KEY
 export LOGIT_KEY
+export NUM_INDUCING_POINTS
+export CALIBRATION_MODULE_TYPE
 
 # extract data_file_path from the data_dir
 export SERIALIZATION_DIR="$(dirname ${ARCHIVE_DIR})/$(basename ${ARCHIVE_DIR})-calibration-${LOGIT_KEY}/"

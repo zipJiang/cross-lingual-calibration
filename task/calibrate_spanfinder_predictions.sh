@@ -70,7 +70,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 eval "$(conda shell.bash hook)"
-conda activate /brtx/604-nvme1/zpjiang/spanfinder/.env
+conda activate enc-pred
 BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 SCRIPT_DIR="${BASE_DIR}scripts/"
 

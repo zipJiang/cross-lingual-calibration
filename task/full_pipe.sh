@@ -7,6 +7,7 @@ LOG_STEM=
 PRETRAINED_MODEL=
 STEP=0
 DCONFIG_FILENAME=en-en.json
+LEARNING_RATE=0.00001
 
 BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 TASK_DIR=${BASE_DIR}task/
@@ -51,6 +52,10 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
+        --learning_rate)
+        LEARNING_RATE="$2"
+        shift
+        shift
     esac
 done
 
@@ -65,7 +70,8 @@ if [[ $STEP -le 0 ]]; then
         --pretrained "${PRETRAINED_MODEL}" \
         --stem "${LOG_STEM}" \
         --dconfig ${DCONFIG_FILENAME} \
-        --task "${TASK_LIST}"
+        --task "${TASK_LIST}" \
+        --learning_rate "${LEARNING_RATE}"
 fi
 
 if [[ $STEP -le 1 ]]; then
