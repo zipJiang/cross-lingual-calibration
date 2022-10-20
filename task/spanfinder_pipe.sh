@@ -9,9 +9,9 @@ SPANFINDER_BASE_DIR=/brtx/604-nvme2/zpjiang/spanfinder_eval/
 SPANFINDER_CALIBRATION_FILE_DIR=${BASE_DIR}data/ace+better_tagging_typing/
 TASK_DIR="${BASE_DIR}task/"
 
-declare -a MODEL_LIST=("xlmr")
+declare -a MODEL_LIST=("large")
 declare -a TASK_LIST=("ace")
-declare -a FILE_STEM=("train" "dev" "test")
+declare -a FILE_STEM=("test")
 
 for model_name in "${MODEL_LIST[@]}"; do
     for task_name in "${TASK_LIST[@]}"; do
@@ -31,10 +31,10 @@ for model_name in "${MODEL_LIST[@]}"; do
         done
 
         # after generating required data-file, we run the calibration step for the model
-        ${TASK_DIR}calibrate_spanfinder_predictions.sh \
-            --data_dir "${SPANFINDER_CALIBRATION_FILE_DIR}${model_name}_${task_name}_tagging"
+        # ${TASK_DIR}calibrate_spanfinder_predictions.sh \
+        #     --data_dir "${SPANFINDER_CALIBRATION_FILE_DIR}${model_name}_${task_name}_tagging"
 
-        ${TASK_DIR}calibrate_spanfinder_predictions.sh \
-            --data_dir "${SPANFINDER_CALIBRATION_FILE_DIR}${model_name}_${task_name}_typing"
+        # ${TASK_DIR}calibrate_spanfinder_predictions.sh \
+        #     --data_dir "${SPANFINDER_CALIBRATION_FILE_DIR}${model_name}_${task_name}_typing"
     done
 done

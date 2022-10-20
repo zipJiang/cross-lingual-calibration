@@ -60,9 +60,8 @@ class CalibrationModel(Model):
                 val(return_struct.logits, labels)
 
         # calculate loss
-        loss_func = torch.nn.CrossEntropyLoss()
         return {
-            'loss': loss_func(return_struct.logits, labels),
+            'loss': return_struct.loss,
             'logits': return_struct.logits
         }
 

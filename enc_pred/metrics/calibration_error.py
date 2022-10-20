@@ -29,6 +29,31 @@ class ExpectedCalibrationError(Metric):
         self._accuracy_indicators = np.zeros(self._num_bins, dtype=np.float32)
         self._epsilon = epsilon
 
+    @property
+    def accuracy_vec(self) -> np.ndarray:
+        """returns the accuracy_vector that shows accuracy over
+        bins (normalized by counter)
+        """
+        return self._accuracy_indicators / (self._counter + self._epsilon)
+    
+    @accuracy_vec.setter
+    def accuracy_vec(self, x: np.ndarray):
+        """
+        """
+        raise NotImplementedError
+    
+    @property
+    def confidence_vec(self) -> np.ndarray:
+        """returns the confidence_vector that shows confidence over bins.
+        """
+        return self._confidence_list / (self._counter + self._epsilon)
+
+    @confidence_vec.setter
+    def confidence_vec(self, x: np.ndarray):
+        """
+        """
+        raise NotImplementedError
+
     def _validate_grouping_steps(self):
         """
         """
@@ -140,6 +165,7 @@ class ExpectedCalibrationError(Metric):
         axes.bar(x, y, width=self._step_size, align='edge')
         axes.set_xlabel('confidence')
         axes.set_ylabel('dist')
+        axes.set_xlim(.5, 1.)
 
         return fig
 

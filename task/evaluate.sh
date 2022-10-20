@@ -56,4 +56,5 @@ allennlp evaluate \
     $(python3 ${SCRIPT_DIR}generate_evaluation_paths.py --lang ${LANG} --task ${TASK}) \
     --include-package enc_pred \
     --file-friendly-logging \
-    --output-file ${OUTPUT_FILENAME}
+    --output-file ${OUTPUT_FILENAME} \
+    --cuda-device 0

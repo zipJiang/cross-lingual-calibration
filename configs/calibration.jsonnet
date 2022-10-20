@@ -45,17 +45,10 @@ local steps = [2, 4, 5, 10, 20];
         scaling_module: {
             type: calibration_module_type,
             [if calibration_module_type == 'gp-calibration' then "num_inducing_points"]: num_inducing_points,
-            [if calibration_module_type == 'gp-calibration' then "data_loader"]: {
-                type: 'simple',
-                shuffle: false,
-                batch_size: batch_size,
-                data_path: train_data_path,
-                reader: {
-                    type: 'calibration-reader',
-                    logits_key: logits_key,
-                    labels_key: labels_key
-                },
-            },
+            [if calibration_module_type == 'gp-calibration' then "data_path"]: train_data_path,
+            [if calibration_module_type == 'gp-calibration' then 'logits_key']: logits_key,
+            [if calibration_module_type == 'dirichlet-calibration' then "miu_"]: 1.0,
+            [if calibration_module_type == 'dirichlet-calibration' then "lambda_"]: 1.0,
         },
         ori_metrics: {
             "ece": {

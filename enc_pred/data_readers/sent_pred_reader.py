@@ -85,7 +85,6 @@ class XNLIReader(SentPredReader):
                         gold_label=gold_label
                     )
 
-    @overrides
     def text_to_instance(
         self,
         premise: Text,

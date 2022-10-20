@@ -80,6 +80,7 @@ def main():
 
     for batch in dataloader:
         move_to_device(batch, 0)
+        print(batch['labels'])
         ori_metric(
             predictions=batch['logits'],
             gold_labels=batch['labels']

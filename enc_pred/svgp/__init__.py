@@ -1,0 +1,2 @@
+from .gp_classes import ApproximateGpCalibrationModel
+from .gp_classes import FlexibleNumClassSoftmaxLikelihood

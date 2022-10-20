@@ -1,3 +1,4 @@
 from .enc_predict_model import EncPredictModel
 from .calibration_model import CalibrationModel
 from .enc_sent_pred_model import EncSentPredModel
+from .plug_and_play_crf import PlugAndPlayCRF

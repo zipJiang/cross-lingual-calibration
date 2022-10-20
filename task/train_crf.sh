@@ -6,15 +6,21 @@ set -i
 set -x
 
 PRETRAINED_MODEL="xlm-roberta-base"
+BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
+SERIALIZATION_BASE_DIR="${BASE_DIR}seqtag-runs/"
+WITH_CRF=false
 RECOVER_FLAG=
+
+WIKIANN_DATA_CONFIG_DIR="${BASE_DIR}data/wikiann/data_config/"
+POS_DATA_CONFIG_DIR="${BASE_DIR}data/udparse_train/"
 
 export CUDA_DEVICES=0
 export NUM_WORKERS=0
 export EPOCHS=128
 export LEARNING_RATE=0.00001
+export SEQTAG_TASK=pos
 export PATIENCE=8
 
-TASK="pos_tags"
 BATCH_SIZE=32
 
 
@@ -23,7 +29,7 @@ do
     key="$1"
     case $key in
         -s|--serialization_dir)
-            SERIALIZATION_DIR="$2"
+            SERIALIZATION_DIR="${SERIALIZATION_BASE_DIR}$2"
             shift
             shift
             ;;
@@ -33,12 +39,13 @@ do
             shift
             ;;
         -d|--data_config)
+            # Notice that here the data config is a path
             DATA_CONFIG="$2"
             shift
             shift
             ;;
-        -t|--task)
-            TASK="$2"
+        --task)
+            SEQTAG_TASK="$2"
             shift
             shift
             ;;
@@ -53,6 +60,10 @@ do
         -l|--learning_rate)
             LEARNING_RATE="$2"
             shift
+            shift
+            ;;
+        --crf)
+            WITH_CRF=true
             shift
             ;;
         -e|--epochs)
@@ -72,13 +83,19 @@ do
     esac
 done
 
-eval "$(conda shell.bash hook)"
-conda activate enc-pred
-BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
-
 # if [ -z "${RECOVER_FLAG}" ]; then
 #     rm -rf "${SERIALIZATION_DIR}"
 # fi
+
+# modify the data config
+if [[ ${SEQTAG_TASK} == "wikiann" ]]; then
+    data_config_dir=${WIKIANN_DATA_CONFIG_DIR}
+else
+    data_config_dir=${POS_DATA_CONFIG_DIR}
+fi
+
+DATA_CONFIG=${data_config_dir}${DATA_CONFIG}
+
 cd "${BASE_DIR}"
 export PRETRAINED_MODEL
 export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
@@ -86,8 +103,9 @@ export DATA_PATH="$(cat ${DATA_CONFIG})"
 export EPOCHS
 export PATIENCE
 export BATCH_SIZE
-export TASK
+export SEQTAG_TASK
+export WITH_CRF
 
-python3 -um allennlp train --include-package enc_pred --file-friendly-logging \
+conda run --no-capture-output -n enc-pred python3 -um allennlp train --include-package enc_pred --file-friendly-logging \
     ${RECOVER_FLAG} -s "${SERIALIZATION_DIR}" \
     ${CONFIGURATION_PATH}

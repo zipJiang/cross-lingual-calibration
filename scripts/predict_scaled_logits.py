@@ -1,8 +1,8 @@
+
 """This is the function that calls the allennlp predictor
 with model from archive, and generate original logits prediction
 from the model.
 """
-from enc_pred.predictors.calibre_predictor import SpanLabelPredictor
 from allennlp.predictors.predictor import Predictor
 
 import argparse
@@ -39,7 +39,7 @@ def main():
 
     predictor = Predictor.from_path(
         archive_path=args.archive_path,
-        predictor_name='span-label-predictor' if args.archive_path.find('xnli') == -1 else 'sentence-label-predictor',
+        predictor_name='calibration-predictor',
         cuda_device=args.cuda_devices
     )
 

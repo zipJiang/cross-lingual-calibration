@@ -33,7 +33,6 @@ class LinearClassificationHead(PredictionHead):
             out_features=self.vocabulary.get_vocab_size(namespace=self.label_namespace),
             bias=self.with_bias)
 
-    @overrides
     def forward(
         self,
         sent_repr: torch.Tensor,
@@ -72,7 +71,6 @@ class LinearSpanClassificationHead(PredictionHead):
             out_features=self.vocabulary.get_vocab_size(namespace=self.label_namespace),
             bias=self.with_bias)
 
-    @overrides
     def forward(
         self,
         span_repr: torch.Tensor,

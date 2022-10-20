@@ -50,6 +50,7 @@ class EncPredictModel(Model):
         prediction_head: Lazy[PredictionHead],
         metrics: Dict[Text, Metric],
         vocab: Vocabulary,
+        label_namespace: Optional[Text] = 'labels',
         initializer: Optional[InitializerApplicator] = None,
         **extras
     ) -> "EncPredictModel":
@@ -84,7 +85,7 @@ class EncPredictModel(Model):
         """
         """
         token_vec = self.embedding(tokens)
-        # generate a span_representation mask
+        # generate a span_representation mask; spans of shape [batch_size, num_spans, 2]
         span_mask = self._get_span_repr_mask(spans)
 
         if parent_mask is not None:
@@ -128,7 +129,8 @@ class EncPredictModel(Model):
                         gold_labels=labels.flatten(),
                         mask=span_mask.flatten()
                     )
-
+                    
+            # normal classifier
             loss_func = torch.nn.CrossEntropyLoss()
             labels[~span_mask] = -100
 

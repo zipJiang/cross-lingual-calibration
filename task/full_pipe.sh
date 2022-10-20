@@ -4,7 +4,7 @@
 
 # Running the full pipeline from model training to evaluation.
 LOG_STEM=
-PRETRAINED_MODEL=
+PRETRAINED_MODEL="xlm-roberta-base"
 STEP=0
 DCONFIG_FILENAME=en-en.json
 LEARNING_RATE=0.00001

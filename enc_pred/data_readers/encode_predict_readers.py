@@ -185,7 +185,6 @@ class UniversalDependencyReader(SpanReader):
                     if self.validate(item):
                         yield self.text_to_instance(**item)
 
-    @overrides
     def text_to_instance(
         self,
         id: List[int],
@@ -198,7 +197,7 @@ class UniversalDependencyReader(SpanReader):
         deprel: List[Text],
         deps: List[Optional[Text]],
         misc: List[Optional[Text]]
-    ):
+    ) -> Instance:
         """Convert a listlized item to allennlp
         instance, where the dataset is easily
         loaded with built-in dataloader.

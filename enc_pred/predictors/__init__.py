@@ -1,1 +1,1 @@
-from .calibre_predictor import SpanLabelPredictor, SentenceLabelPredictor
+from .calibre_predictor import SpanLabelPredictor, SentenceLabelPredictor, CalibrationPredictor

@@ -19,7 +19,7 @@ to_targ[train]="calibration-train"
 to_targ[dev]="calibration-dev"
 to_targ[test]="ar"
 
-# for task in ace better; do
+for task in ace better; do
     task=better
     for depth in d0 d1; do
         source_dir="${SPANFINDER_DATA_DIR}${task}-${depth}/"
@@ -40,4 +40,4 @@ to_targ[test]="ar"
             done
         done
     done
-# done
+done
