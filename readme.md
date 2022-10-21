@@ -20,6 +20,14 @@ $ export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 ## Preparing Dataset
 
+To prepare the dataset for the multilingual experiments, run the following script:
+
+```shellscript
+$ task/prepare_dataset.sh
+```
+
+this will generate a dataset directory and donwloading and extracting all relevant dataset.
+
 ## File Structures
 
 ```shellscript
