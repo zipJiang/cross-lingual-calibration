@@ -4,7 +4,6 @@ small dumps by languages.
 import argparse
 import os
 import json
-from tqdm import tqdm
 
 
 def parse_args():

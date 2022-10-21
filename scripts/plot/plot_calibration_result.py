@@ -2,12 +2,9 @@
 given the input calibration file and a transfering model.
 """
 import os
-import json
-import allennlp
 from allennlp.nn.util import move_to_device
 from allennlp.models.model import Model
 from allennlp.data.data_loaders.simple_data_loader import SimpleDataLoader
-import enc_pred
 from enc_pred.data_readers.calibration_readers import CalibrationReader
 from enc_pred.metrics.calibration_error import ExpectedCalibrationError
 import argparse

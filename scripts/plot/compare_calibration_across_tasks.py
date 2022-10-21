@@ -125,7 +125,7 @@ def main():
     axes.tick_params(axis='y', labelsize=20)
     axes.set_frame_on(False)
     
-    axes.set_ylabel('ECE')
+    axes.set_ylabel('ECE', fontsize=20)
     
     base_ruler = np.array([i * STEP_SIZE for i in range(len(TASK_GROUP_NAMES))])
     for didx, data_size in enumerate(DATA_SOURCE_LIST):

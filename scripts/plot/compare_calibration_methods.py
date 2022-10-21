@@ -141,6 +141,7 @@ def main():
     [table_dict[lang] for lang in LANG_SEQ]
 
     axes.legend(fontsize=15)
+    axes.set_ylabel("ECE", fontsize=20)
         
     fig.tight_layout()
     fig.savefig(args.output_path)

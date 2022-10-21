@@ -68,7 +68,7 @@ def parse_args():
     
     parser.add_argument(
         '--step', action='store_true', dest='step',
-        required=True, help='Whether to store step files.'
+        required=False, help='Whether to store step files.'
     )
     
     # parser.add_argument(
@@ -111,42 +111,43 @@ def main():
     axes.tick_params(axis='y', labelsize=20)
     axes.set_frame_on(False)
 
-    axes.set_ylabel('ECE')
-    axes.set_yticks([0.05, 0.10, 0.15])
-    axes.set_ylim([0.0, 0.19])
+    axes.set_ylabel('ECE', fontsize=20)
+    axes.set_yticks([0.05, 0.075, 0.10, 0.125, 0.15, 0.175])
+    axes.set_ylim([0.0, 0.20])
     
     _get_step_filename = lambda x: ''.join([*args.output_path.split('.')[:-1], f'-step-{x}.', args.output_path.split('.')[-1]])
         
     # now for the second loop try to plot calibration result
-    for step, method in enumerate(['temperature-scaling', 'gp-calibration']):
-        for model_stem in MODELS:
-            for suffix in ['', '-crf']:
-                calibration_dirname = f"{PARENT_DIR}{model_stem}{DATA_SOURCE_MAP[args.data_source]}-{args.task}{suffix}={method}=logit/"
-                
-                result = []
-                for lang in LANG_LIST:
-                    stack = []
-                    for i in range(1, 11):
-                        with open(os.path.join(calibration_dirname, str(i), "eval", f"{lang}.json"), 'r', encoding='utf-8') as file_:
-                            stack.append(json.load(file_)['scaled::ece::ECE'])
-                            
-                    result.append(sum(stack) / len(stack))
-                
-                
-                if model_stem.startswith('large'):
-                    marker_size = 15
-                else:
-                    marker_size = 5
+    # for step, method in enumerate(['temperature-scaling', 'gp-calibration']):
+    for model_stem in MODELS:
+        for suffix in ['', '-crf']:
+            calibration_dirname = f"{PARENT_DIR}{model_stem}{DATA_SOURCE_MAP[args.data_source]}-{args.task}{suffix}=temperature-scaling=logit/"
+            
+            result = []
+            for lang in LANG_LIST:
+                stack = []
+                for i in range(1, 11):
+                    with open(os.path.join(calibration_dirname, str(i), "eval", f"{lang}.json"), 'r', encoding='utf-8') as file_:
+                        stack.append(json.load(file_)['ori::ece::ECE'])
+                        
+                result.append(sum(stack) / len(stack))
+            
+            
+            if model_stem.startswith('large'):
+                marker_size = 15
+            else:
+                marker_size = 5
 
-                label_str = METHOD_LEGEND_MAP[method] + suffix
-                if label_str not in USED_LABEL:
-                    USED_LABEL.add(label_str)
-                else:
-                    label_str = None
-                    
-                axes.plot(result, '--', marker='s' if suffix == '' else 'p', markersize=marker_size, alpha=.6, color=CLOSE if method == 'temperature-scaling' else FAR, label=label_str)
+            # label_str = METHOD_LEGEND_MAP[method] + suffix
+            label_str = model_stem + suffix
+            if label_str not in USED_LABEL:
+                USED_LABEL.add(label_str)
+            else:
+                label_str = None
+                
+            axes.plot(result, marker='o', markersize=marker_size, alpha=.6, color=CLOSE if suffix == '' else FAR, label=label_str)
         axes.legend(prop={'size': 20})
-        fig.savefig(_get_step_filename(step))
+        # fig.savefig(_get_step_filename(step))
     
     fig.savefig(args.output_path)
     
