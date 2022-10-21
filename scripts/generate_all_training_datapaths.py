@@ -1,5 +1,9 @@
 """This function generate all training configs (datapath) for
-given training tasks.
+given training tasks. This is properly anonymized to avoid hard
+coded path.
+
+ These functional files are designed to only rely on minimum dependency so
+ they could run independently.
 """
 import argparse
 import os
@@ -21,9 +25,19 @@ def parse_args():
         type=str, required=True,
         help='Destination of the generated data_path json files.'
     )
+    
+    parser.add_argument(
+        "--dataset-dir",
+        action='store',
+        dest='dataset_dir',
+        type=str, required=True,
+        help="Where to look for the dataset."
+    )
 
     parser.add_argument(
-        '--subsample', action='store_true', dest='subsample',
+        '--subsample', action='store', dest='subsample',
+        choices=["full", "low", "very-low"],
+        default="full",
         required=False, help='Whether to use the subsampled config.'
     )
 
@@ -39,7 +53,7 @@ def main():
     
     if args.task == 'udparse':
         # generating all configures according to EIAIT( EMNLP PAPER )
-        stem = '/brtx/604-nvme2/zpjiang/encode_predict/data/universal_dependency/ud-treebanks-v2.9'
+        stem = os.path.join(args.dataset_dir, 'ud-treebanks-v2.9')
         configuration = {
             'train': [
                 r'UD_English-.*'
@@ -66,26 +80,33 @@ def main():
                             if filename.endswith('conllu') and filename.find(key) != -1:
                                 selected[key].append(os.path.join(stem, directory, filename))
 
-        if not args.subsample:
+        if args.subsample == "full":
             remapped = {
                 'train_data_path': selected['train'],
                 'validation_data_path': selected['dev'],
                 'test_data_path': selected['test']
             }
 
+        elif args.subsample == 'low':
+            remapped = {
+                'train_data_path': os.path.join(args.data_dir, "subsampled_dataset", "subsampled_en_ewt-ud-2.9-train.conllu"),
+                'validation_data_path': selected['dev'],
+                'test_data_path': selected['test']
+            }
+        
         else:
             remapped = {
-                'train_data_path': "/brtx/604-nvme2/zpjiang/encode_predict/data/udparse_train/subsampled_datasets/subsampled_en_ewt-ud-2.9-train.conllu",
+                'train_data_path': os.path.join(args.data_dir, "subsampled_dataset", "subsubsampled_en_ewt-ud-2.9-train.conllu"),
                 'validation_data_path': selected['dev'],
                 'test_data_path': selected['test']
             }
 
         with open(args.write_to, 'w', encoding='utf-8') as file_:
-            json.dump(remapped, file_)
+            json.dump(remapped, file_, indent=4)
 
     elif args.task == 'wikiann':
 
-        if not args.subsample:
+        if args.subsample == "full":
             configuration = {
                 'train_data_path': [
                     'en/train'
@@ -97,10 +118,23 @@ def main():
                     'en/test'
                 ]
             }
-        else:
+        elif args.subsample == "low":
             configuration = {
                 'train_data_path': [
                     'en/train[:1000]'
+                ],
+                'validation_data_path': [
+                    'en/validation'
+                ],
+                'test_data_path': [
+                    'en/test'
+                ]
+            }
+            
+        else:
+            configuration = {
+                'train_data_path': [
+                    'en/train[:100]'
                 ],
                 'validation_data_path': [
                     'en/validation'
@@ -114,35 +148,48 @@ def main():
             json.dump(configuration, file_)
 
     elif args.task == 'xnli':
-        if not args.subsample:
+        if args.subsample == "full":
             configuration = {
                 'train_data_path': [
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/multinli_1.0/multinli_1.0_train.jsonl'
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_train.jsonl')
                 ],
                 'validation_data_path': [
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/multinli_1.0/multinli_1.0_dev_mismatched.jsonl',
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/multinli_1.0/multinli_1.0_dev_matched.jsonl'
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_dev_mismatched.jsonl'),
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_dev_matched.jsonl')
                 ],
                 'test_data_path': [
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/xnli-test/en.jsonl'
+                    os.path.join(args.dataset_dir, 'xnli-test', 'en.jsonl')
+                ]
+            }
+        elif args.subsample == 'low':
+            configuration = {
+                'train_data_path': [
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_train.jsonl[:1000]')
+                ],
+                'validation_data_path': [
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_dev_mismatched.jsonl'),
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_dev_matched.jsonl')
+                ],
+                'test_data_path': [
+                    os.path.join(args.dataset_dir, 'xnli-test', 'en.jsonl')
                 ]
             }
         else:
             configuration = {
                 'train_data_path': [
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/multinli_1.0/multinli_1.0_train.jsonl[:1000]'
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_train.jsonl[:100]')
                 ],
                 'validation_data_path': [
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/multinli_1.0/multinli_1.0_dev_mismatched.jsonl',
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/multinli_1.0/multinli_1.0_dev_matched.jsonl'
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_dev_mismatched.jsonl'),
+                    os.path.join(args.dataset_dir, "multinli_1.0", 'multinli_1.0_dev_matched.jsonl')
                 ],
                 'test_data_path': [
-                    '/brtx/604-nvme2/zpjiang/encode_predict/data/xnli-test/en.jsonl'
+                    os.path.join(args.dataset_dir, 'xnli-test', 'en.jsonl')
                 ]
             }
 
         with open(args.write_to, 'w', encoding='utf-8') as file_:
-            json.dump(configuration, file_)
+            json.dump(configuration, file_, indent=4)
 
     else:
         raise NotImplementedError
