@@ -2,14 +2,7 @@
 #SBATCH --partition=brtx6
 #SBATCH --gpus=1
 
-BASE_DIR=/brtx/604-nvme2/zpjiang/encode_predict/
-SCRIPT_DIR=${BASE_DIR}scripts/
-DATA_DIR=${DATA_DIR}data/
-
-eval "$(conda shell.bash hook)"
-conda activate enc-pred
-export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
-
+BASE_DIR=$(pwd)
 LANG=
 TASK=
 COMMAND=
@@ -36,8 +29,20 @@ do
         shift
         shift
         ;;
+        --base_dir)
+        BASE_DIR="$2"
+        [[ "${BASE_DIR}" != */ ]] && BASE_DIR="${BASE_DIR}/"
+        shift
+        shift
+        ;;
     esac
 done
+
+SCRIPT_DIR=${BASE_DIR}scripts/
+DATA_DIR=${DATA_DIR}data/
+
+export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
+
 
 # normalize serialization_dir
 [[ "${SERIALIZATION_DIR}" != */ ]] && SERIALIZATION_DIR="${SERIALIZATION_DIR}/"

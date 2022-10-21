@@ -13,8 +13,7 @@ NUM_RUNS=10
 BATCH_SIZE=4096
 CALIBRATION_MODULE_TYPE='temperature-scaling'
 ARCHIVE_DIR=
-
-export CONGIFURATION_PATH=/brtx/604-nvme2/zpjiang/encode_predict/configs/calibration.jsonnet
+BASE_DIR=$(pwd)
 
 # CONTROL FLOW
 STEP=0
@@ -64,6 +63,11 @@ while [[ $# -gt 0 ]]; do
         #     shift
         #     shift
         #     ;;
+        --base_dir)
+            BASE_DIR="$2"
+            shift
+            shift
+            ;;
         --module)
             CALIBRATION_MODULE_TYPE="$2"
             [[ ${CALIBRATION_MODULE_TYPE} == "gp-calibration" ]] && BATCH_SIZE=512
@@ -90,13 +94,17 @@ while [[ $# -gt 0 ]]; do
             shift
             shift
             ;;
+        --base_dir)
+            BASE_DIR="$2"
+            [[ "${BASE_DIR}" != */ ]] && BASE_DIR="${BASE_DIR}/"
+            shift
+            shift
+            ;;
     esac
 done
 
-eval "$(conda shell.bash hook)"
-conda activate enc-pred
-BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
 SCRIPT_DIR="${BASE_DIR}scripts/"
+export CONGIFURATION_PATH=${BASE_DIR}configs/calibration.jsonnet
 
 export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 export LEARNING_RATE
