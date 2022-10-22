@@ -15,8 +15,8 @@ do
     key="$1"
     case $key in
         -s|--serialization_dir)
-            [[ "${SERIALIZATION_DIR}" != */ ]] && SERIALIZATION_DIR="${SERIALIZATION_DIR}/"
             SERIALIZATION_DIR="$2"
+            [[ "${SERIALIZATION_DIR}" != */ ]] && SERIALIZATION_DIR="${SERIALIZATION_DIR}/"
             shift
             shift
             ;;
@@ -43,12 +43,13 @@ SCRIPT_DIR=${BASE_DIR}scripts/
 
 INPUT_FILE_PATH=$(mktemp)
 
-python3 ${SCRIPT_DIR}generate_evaluation_paths --lang ${LANG} --task ${TASK} --return_dict > ${INPUT_FILE_PATH}
+python3 ${SCRIPT_DIR}generate_evaluation_paths.py --lang ${LANG} --task ${TASK} --return_dict > ${INPUT_FILE_PATH}
 
 [ ! -d "${SERIALIZATION_DIR}calibration" ] && mkdir -p "${SERIALIZATION_DIR}calibration"
 
 python3 ${SCRIPT_DIR}predict_span_probs.py \
     --data_config_path ${INPUT_FILE_PATH} \
-    --device 0 \
+    --device 7 \
+    --task ${TASK} \
     --output_path ${SERIALIZATION_DIR}calibration/${LANG}.jsonl \
     --archive_path ${SERIALIZATION_DIR}
