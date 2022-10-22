@@ -1,3 +1,5 @@
+cached-path==1.1.2
+protobuf==3.19.5
 allennlp==2.9.3
 conllu==4.4.1
 datasets==2.2.1

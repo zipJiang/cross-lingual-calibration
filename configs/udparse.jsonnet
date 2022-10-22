@@ -8,6 +8,7 @@ local hidden_dim = 300;
 local cuda_device = std.parseJson(std.extVar("CUDA_DEVICES"));
 local batch_size = std.parseJson(std.extVar("BATCH_SIZE"));
 local num_workers = std.parseJson(std.extVar("NUM_WORKERS"));
+local num_workers = 0;
 local num_bins = 100;
 local steps = [2, 4, 5, 10, 20];
 local learning_rate = std.parseJson(std.extVar("LEARNING_RATE"));

@@ -90,7 +90,6 @@ export PRETRAINED_MODEL
 export PYTHONPATH="${PYTHONPATH}:${BASE_DIR}"
 export DATA_PATH="$(cat ${DATA_CONFIG})"
 export EPOCHS
-export PATIENCE
 export BATCH_SIZE
 export TASK
 

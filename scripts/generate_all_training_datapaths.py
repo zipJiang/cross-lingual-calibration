@@ -89,20 +89,20 @@ def main():
 
         elif args.subsample == 'low':
             remapped = {
-                'train_data_path': os.path.join(args.data_dir, "subsampled_dataset", "subsampled_en_ewt-ud-2.9-train.conllu"),
+                'train_data_path': os.path.join(args.dataset_dir, "subsampled_dataset", "subsampled_en_ewt-ud-2.9-train.conllu"),
                 'validation_data_path': selected['dev'],
                 'test_data_path': selected['test']
             }
         
         else:
             remapped = {
-                'train_data_path': os.path.join(args.data_dir, "subsampled_dataset", "subsubsampled_en_ewt-ud-2.9-train.conllu"),
+                'train_data_path': os.path.join(args.dataset_dir, "subsampled_dataset", "subsubsampled_en_ewt-ud-2.9-train.conllu"),
                 'validation_data_path': selected['dev'],
                 'test_data_path': selected['test']
             }
 
         with open(args.write_to, 'w', encoding='utf-8') as file_:
-            json.dump(remapped, file_, indent=4)
+            json.dump(remapped, file_)
 
     elif args.task == 'wikiann':
 
@@ -189,7 +189,7 @@ def main():
             }
 
         with open(args.write_to, 'w', encoding='utf-8') as file_:
-            json.dump(configuration, file_, indent=4)
+            json.dump(configuration, file_)
 
     else:
         raise NotImplementedError
