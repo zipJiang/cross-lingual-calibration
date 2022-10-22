@@ -110,8 +110,6 @@ class EncPredictModel(Model):
         selection_logits = None
         
         # collect labels according to task.
-        # TODO: move the flatten / update metric inside self-calibration metrics
-        # TODO: move the detachment int othe metric
 
         if labels is not None:
             for metric in self.metrics.values():

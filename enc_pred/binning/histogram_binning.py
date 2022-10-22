@@ -92,10 +92,6 @@ class HistogramBinning(torch.nn.Module):
             index=bin_idx
         ) + self._epsilon
         
-        # TODO: The original implementation is wrong,
-        # instead we should generate a binary probability
-        # with label indicating correct_incorrect.
-
         predictions = torch.argmax(aggregated_probs, dim=-1)
 
         binary_labels = (predictions == labels).to(dtype=torch.int64)

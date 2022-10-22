@@ -73,7 +73,6 @@ class ApproximateGpCalibrationModel(ApproximateGP):
         # we use this default seems that this is not a parameter in the original implementation
         self.mean_module = gpytorch.means.ConstantMean()
 
-        # TODO: current differences: we do not apply white noice to self-kernel calculation.
         self.covar_module = gpytorch.kernels.RBFKernel(
             lengthscale_prior=lengthscale_prior
         )

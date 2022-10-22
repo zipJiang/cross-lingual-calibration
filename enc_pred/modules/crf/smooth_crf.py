@@ -132,8 +132,6 @@ class SmoothCRF(ConditionalRandomField):
         mask: [batch_size, sequence_length]
         """
 
-        # TODO: batchify this calculation
-
         batch_size, sequence_length, num_tags = logits.size()
 
         alphas = []
