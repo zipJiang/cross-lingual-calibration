@@ -12,6 +12,7 @@ The original experiments uses python version `3.8.13`. All pacakge dependencies 
 ```shellscript
 $ pip install -r requirements.txt
 ```
+Notice that due to an issue with `allennlp` you probably need to install `jsonnet` with conda.
 To run the code base locally you should add this working directory to `$PYTHONPATH`:
 ```shellscript
 $ cd <path-to-this-repository-directory>
