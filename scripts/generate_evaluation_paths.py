@@ -12,6 +12,8 @@ def parse_args():
         """Prepare evaluation path for multi-lingual settings.
         """
     )
+
+    # Here task actually corresponds to dataset
     parser.add_argument(
         '--task', action='store', dest='task',
         type=str, required=True, help='Which task to represent.',
@@ -32,32 +34,31 @@ def parse_args():
 def main():
     args = parse_args()
 
-    stem = '/brtx/604-nvme2/zpjiang/encode_predict/'
-
     if args.task == 'udparse':
+        # For open sourced version we will use a slightly different dir structure
         config = {
-            'ar': 'data/universal_dependency/ud-treebanks-v2.9/UD_Arabic-PUD/ar_pud-ud-test.conllu',
-            'de': 'data/universal_dependency/ud-treebanks-v2.9/UD_German-PUD/de_pud-ud-test.conllu',
-            'en': 'data/universal_dependency/ud-treebanks-v2.9/UD_English-PUD/en_pud-ud-test.conllu',
-            'es': 'data/universal_dependency/ud-treebanks-v2.9/UD_Spanish-PUD/es_pud-ud-test.conllu',
-            'fr': 'data/universal_dependency/ud-treebanks-v2.9/UD_French-PUD/fr_pud-ud-test.conllu',
-            'hi': 'data/universal_dependency/ud-treebanks-v2.9/UD_Hindi-PUD/hi_pud-ud-test.conllu',
-            'ru': 'data/universal_dependency/ud-treebanks-v2.9/UD_Russian-PUD/ru_pud-ud-test.conllu',
-            'zh': 'data/universal_dependency/ud-treebanks-v2.9/UD_Chinese-PUD/zh_pud-ud-test.conllu',
+            'ar': 'data/ud-treebanks-v2.9/UD_Arabic-PUD/ar_pud-ud-test.conllu',
+            'de': 'data/ud-treebanks-v2.9/UD_German-PUD/de_pud-ud-test.conllu',
+            'en': 'data/ud-treebanks-v2.9/UD_English-PUD/en_pud-ud-test.conllu',
+            'es': 'data/ud-treebanks-v2.9/UD_Spanish-PUD/es_pud-ud-test.conllu',
+            'fr': 'data/ud-treebanks-v2.9/UD_French-PUD/fr_pud-ud-test.conllu',
+            'hi': 'data/ud-treebanks-v2.9/UD_Hindi-PUD/hi_pud-ud-test.conllu',
+            'ru': 'data/ud-treebanks-v2.9/UD_Russian-PUD/ru_pud-ud-test.conllu',
+            'zh': 'data/ud-treebanks-v2.9/UD_Chinese-PUD/zh_pud-ud-test.conllu',
             'calibration-train': [
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-Atis/en_atis-ud-test.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-EWT/en_ewt-ud-test.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-GUM/en_gum-ud-test.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-LinES/en_lines-ud-test.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-ParTUT/en_partut-ud-test.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-Pronouns/en_pronouns-ud-test.conllu'
+                'data/ud-treebanks-v2.9/UD_English-Atis/en_atis-ud-test.conllu',
+                'data/ud-treebanks-v2.9/UD_English-EWT/en_ewt-ud-test.conllu',
+                'data/ud-treebanks-v2.9/UD_English-GUM/en_gum-ud-test.conllu',
+                'data/ud-treebanks-v2.9/UD_English-LinES/en_lines-ud-test.conllu',
+                'data/ud-treebanks-v2.9/UD_English-ParTUT/en_partut-ud-test.conllu',
+                'data/ud-treebanks-v2.9/UD_English-Pronouns/en_pronouns-ud-test.conllu'
             ],
             'calibration-dev': [
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-Atis/en_atis-ud-dev.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-EWT/en_ewt-ud-dev.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-GUM/en_gum-ud-dev.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-LinES/en_lines-ud-dev.conllu',
-                'data/universal_dependency/ud-treebanks-v2.9/UD_English-ParTUT/en_partut-ud-dev.conllu',
+                'data/ud-treebanks-v2.9/UD_English-Atis/en_atis-ud-dev.conllu',
+                'data/ud-treebanks-v2.9/UD_English-EWT/en_ewt-ud-dev.conllu',
+                'data/ud-treebanks-v2.9/UD_English-GUM/en_gum-ud-dev.conllu',
+                'data/ud-treebanks-v2.9/UD_English-LinES/en_lines-ud-dev.conllu',
+                'data/ud-treebanks-v2.9/UD_English-ParTUT/en_partut-ud-dev.conllu',
             ]
         }
 

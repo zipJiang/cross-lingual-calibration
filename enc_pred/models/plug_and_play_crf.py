@@ -102,7 +102,6 @@ class PlugAndPlayCRF(Model):
         labels: [batch_size, seq_len],
         """
         
-        # TODO: Check whether tokens contains a mask field.
         token_vec = self.embedding(tokens)  # [batch_size, seq_len, embeddings]
         predict_logits = self.prediction_head(token_vec)['logits']
         
@@ -226,7 +225,6 @@ class PlugAndPlayCRF(Model):
             else:
                 logits = predict_logits
                 
-            # TODO: try to generate labels that are properly masked.
             return {
                 'logits': logits.flatten(0, 1)[masks.flatten()],
                 'labels': labels.flatten()[masks.flatten()]

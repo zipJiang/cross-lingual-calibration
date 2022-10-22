@@ -2,7 +2,6 @@
 used to read datasets from datasets of the predictions
 made with pre-trained encoders.
 """
-from importlib.metadata import MetadataPathFinder
 from allennlp.data.dataset_readers.dataset_reader import DatasetReader
 from allennlp.data.tokenizers.tokenizer import Token
 from allennlp.data.token_indexers.pretrained_transformer_indexer import PretrainedTransformerIndexer
@@ -232,7 +231,6 @@ class UniversalDependencyReader(SpanReader):
         if self.task == 'deprel':
             fields['parent_ids'] = parent_ids
 
-            # TODO: move this into model
             parent_mask = torch.logical_and(
                 0 <= parent_ids.tensor,
                 parent_ids.tensor < spans.sequence_length()

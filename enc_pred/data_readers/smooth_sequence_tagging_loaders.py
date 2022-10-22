@@ -1,7 +1,6 @@
 """This sequence tagging loaders are used to marginalize all spans
 in a sentence that could be marginalized.
 """
-from importlib.metadata import MetadataPathFinder
 from allennlp.data.dataset_readers.dataset_reader import DatasetReader
 from allennlp.data.tokenizers.tokenizer import Token
 from allennlp.data.token_indexers.pretrained_transformer_indexer import PretrainedTransformerIndexer

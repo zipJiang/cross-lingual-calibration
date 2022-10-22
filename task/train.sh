@@ -16,6 +16,7 @@ export PATIENCE=8
 
 TASK="pos_tags"
 BATCH_SIZE=32
+BASE_DIR=$(pwd)
 
 
 while [[ $# -gt 0 ]]
@@ -69,12 +70,17 @@ do
             RECOVER_FLAG=--recover
             shift
             ;;
+        --base_dir)
+            BASE_DIR="$2"
+            [[ "${BASE_DIR}" != */ ]] && BASE_DIR="${BASE_DIR}/"
+            shift
+            shift
+            ;;
     esac
 done
 
-eval "$(conda shell.bash hook)"
-conda activate enc-pred
-BASE_DIR="/brtx/604-nvme2/zpjiang/encode_predict/"
+# eval "$(conda shell.bash hook)"
+# conda activate enc-pred
 
 # if [ -z "${RECOVER_FLAG}" ]; then
 #     rm -rf "${SERIALIZATION_DIR}"

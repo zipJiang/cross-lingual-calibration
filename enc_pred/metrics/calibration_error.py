@@ -194,12 +194,6 @@ class ExpectedCalibrationError(Metric):
 
         return fig
 
-
-# TODO: add a lazy constructor that construct metric from label
-# or need to calculate num_classes based on input data.
-
-# TODO: make mask truly available
-# TODO: check whether we need to apply softmax cross-entropy examination
 @Metric.register('class-calibration-error')
 class ClassCalibrationError(Metric):
     """Compute class calibration error disregard

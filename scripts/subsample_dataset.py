@@ -28,7 +28,7 @@ def parse_args():
     )
     parser.add_argument(
         '--seed', action='store', dest='seed',
-        type=int, required=True
+        type=int, required=False, default=2265
     )
 
     return parser.parse_args()

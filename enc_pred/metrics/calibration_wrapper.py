@@ -32,11 +32,6 @@ class CalibrationWrapper(Metric):
     @overrides
     def get_metric(self, reset: bool = False) ->Dict[Text, float]:
 
-        # return {
-        #     'arc-ECE': self.arc_calibration.get_metric(reset)['ECE'],
-        #     'label-ECE': self.label_calibration.get_metric(reset)['ECE']
-        # }
-
         return_dict = {}
 
         for key, val in self.arc_metric.get_metric(reset).items():
