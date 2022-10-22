@@ -2,7 +2,7 @@
 #SBATCH --partition=brtx6
 #SBATCH --gpus=1
 
-BASE_DIR=$(pwd)
+BASE_DIR=$(pwd)/
 LANG=
 TASK=
 COMMAND=

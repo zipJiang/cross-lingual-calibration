@@ -85,8 +85,8 @@ Where data_config files are the files generated in the previous step. Notice tha
 After the training finishes and is saved to the serialization directory, We can evaluate the model on the dev set to get training statistics for the original task. This is done using the evaluation shellscript `task/evaluate.sh`:
 ```shellscript
 $ task/evaluate.sh --serialization_dir [SERIALIZATION_DIR] \
-    --task {pos_tags, deprel, ner, xnli} \
-    --lang {ar, de, en, es, fr, hi, ru, zh, calibration-train, calibration-dev}
+    --task {udparse, wikiann, xnli} \
+    --lang {ar, de, en, es, fr, hi, ru, zh}
 ```
 
 Notice that the evaluation result contains evaluated ECE for original logits, but to evaluate calibration we still need to get to align predictions with relevant labels this is done in the next step.
@@ -97,7 +97,7 @@ To train a calibrator as described in the next step, a minimum requirement is th
 
 ```shellscript
 $ task/predict_logit.sh \
-    --task {pos_tags, deprel, ner, xnli} \
+    --task {udparse, wikiann, xnli} \
     --serialization_dir [SERIALIZATION_DIR] \
     --lang {ar, de, en, es, fr, hi, ru, zh, calibration-train, calibration-dev}
 ```

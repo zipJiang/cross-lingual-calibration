@@ -7,7 +7,7 @@ export NUM_WORKERS=0
 export LEARNING_RATE=0.0001
 
 
-BASE_DIR=$(pwd)
+BASE_DIR=$(pwd)/
 SERIALIZATION_DIR=
 TASK=
 LANG=
@@ -57,7 +57,7 @@ mkdir -p ${SERIALIZATION_DIR}eval/
 
 allennlp evaluate \
     "${SERIALIZATION_DIR}" \
-    $(python3 ${SCRIPT_DIR}generate_evaluation_paths.py --lang ${LANG} --task ${TASK}) \
+    "$(python3 ${SCRIPT_DIR}generate_evaluation_paths.py --lang ${LANG} --task ${TASK})" \
     --include-package enc_pred \
     --file-friendly-logging \
     --output-file ${OUTPUT_FILENAME} \

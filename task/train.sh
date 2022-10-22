@@ -16,7 +16,7 @@ export PATIENCE=8
 
 TASK="pos_tags"
 BATCH_SIZE=32
-BASE_DIR=$(pwd)
+BASE_DIR=$(pwd)/
 
 
 while [[ $# -gt 0 ]]
